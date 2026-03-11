@@ -1,0 +1,17 @@
+{
+  "validation_type": "internal_consistency",
+  "experimental_validation": "NOT PERFORMED",
+  "binary_checks": {
+    "faraday_units": true,
+    "butler_volmer_limits": true,
+    "resonance_amplification": true
+  },
+  "passed": 3,
+  "total": 3,
+  "limitations": [
+    "beta_stress is phenomenological, requires coupon test calibration",
+    "Fretting-corrosion synergy not quantified",
+    "No external experimental dataset used",
+    "pH model is Nernst approximation only"
+  ]
+}
