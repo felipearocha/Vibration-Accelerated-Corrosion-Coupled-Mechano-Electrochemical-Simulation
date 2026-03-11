@@ -1,0 +1,2 @@
+# Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation
+A physics-first engineering simulation of vibration-accelerated corrosion in X65 carbon steel pipe under CO2-saturated brine. The system couples:  - Damped single-degree-of-freedom structural vibration (SDOF) - Stress-modified Butler-Volmer electrochemical kinetics - Faraday mass loss rate (Corrosion) - Archard fretting wear at pipe supports
