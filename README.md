@@ -93,8 +93,7 @@ integrity_code_series_week4_vibrocorrosion/
 │   ├── validation_report.json
 │   └── audit_log.jsonl
 ├── notebooks/                         # Optional Jupyter exploration
-└── linkedin/
-    └── linkedin_post.txt
+
 ```
 
 ---
