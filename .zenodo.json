@@ -1,0 +1,44 @@
+{
+  "title": "Vibration-Accelerated Corrosion: Coupled Mechano-Electrochemical Simulation (Integrity Code Series Bonus)",
+  "description": "<p>Physics-first engineering simulation of vibration-accelerated corrosion in X65 carbon-steel pipe under CO2-saturated brine at low-cycle pipe-support contacts. The model couples four mechanisms:</p><ol><li>Damped single-degree-of-freedom (SDOF) structural vibration</li><li>Stress-modified Butler-Volmer electrochemical kinetics (anodic dissolution accelerated by activation-volume term)</li><li>Faraday mass-loss conversion to corrosion rate</li><li>Archard fretting wear at support contacts</li></ol><p>A Gradient-Boosted Regression surrogate is trained on 50,000+ physics-generated data points for real-time deployment. Bonus entry in the Integrity Code Series. Limitations are documented explicitly: stress-activation coefficient is phenomenological, fretting-corrosion synergy term is not modeled, and the pH model uses a Nernst approximation only.</p>",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "MIT",
+  "creators": [
+    {
+      "name": "Rocha, Felipe",
+      "affiliation": "Independent Researcher"
+    }
+  ],
+  "keywords": [
+    "vibration corrosion",
+    "mechano-electrochemistry",
+    "X65 carbon steel",
+    "CO2 corrosion",
+    "brine",
+    "Butler-Volmer",
+    "stress-modified kinetics",
+    "SDOF vibration",
+    "Archard wear",
+    "fretting",
+    "surrogate model",
+    "GBR",
+    "machine learning surrogate"
+  ],
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/felipearocha/Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation",
+      "scheme": "url",
+      "resource_type": "software"
+    }
+  ],
+  "references": [
+    "Archard J.F. (1953). Contact and rubbing of flat surfaces. Journal of Applied Physics 24(8): 981-988.",
+    "Nesic S. (2007). Key issues related to modelling of internal corrosion of oil and gas pipelines. Corrosion Science 49: 4308-4338.",
+    "Larsen-Basse J. (1973). Wear of hard-metals in rock drilling. Wear 24(3): 263-275.",
+    "ISO 21457:2010. Materials selection and corrosion control for oil and gas production systems."
+  ],
+  "language": "eng",
+  "version": "0.1.1"
+}

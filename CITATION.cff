@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+title: "Vibration-Accelerated Corrosion: Coupled Mechano-Electrochemical Simulation (Integrity Code Series Bonus)"
+message: "If you use this software, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: Rocha
+    given-names: Felipe
+    affiliation: "Independent Researcher"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: replace once ORCID is provisioned
+repository-code: "https://github.com/felipearocha/Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation"
+url: "https://github.com/felipearocha/Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation"
+abstract: >
+  Physics-first engineering simulation of vibration-accelerated corrosion in X65 carbon-steel pipe under CO2-saturated brine at low-cycle pipe-support contacts. The model couples four mechanisms: Damped single-degree-of-freedom (SDOF) structural vibration Stress-modified Butler-Volmer electrochemical kinetics (anodic dissolution accelerated by activation-volume term) Faraday mass-loss conversion to corrosion rate Archard fretting wear at support contacts A Gradient-Boosted Regression surrogate is trained on 50,000+ physics-generated data points for real-time deployment. Bonus entry in the Integrity Code Series. Limitations are documented explicitly: stress-activation coefficient is phenomenological, fretting-corrosion synergy term is not modeled, and the pH model uses a Nernst approximation only.
+keywords:
+  - vibration corrosion
+  - mechano-electrochemistry
+  - X65 carbon steel
+  - CO2 corrosion
+  - brine
+  - Butler-Volmer
+  - stress-modified kinetics
+  - SDOF vibration
+  - Archard wear
+  - fretting
+  - surrogate model
+  - GBR
+  - machine learning surrogate
+license: MIT
+version: "0.1.1"
+date-released: "2026-05-13"
+identifiers:
+  - type: url
+    value: "https://github.com/felipearocha/Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation/releases/tag/v0.1.1"
+    description: "GitHub release tag v0.1.1"
+  # After first Zenodo release, replace the doi block below with the real value:
+  # - type: doi
+  #   value: "10.5281/zenodo.XXXXXXX"
+  #   description: "Concept DOI (always resolves to latest version)"
