@@ -3,11 +3,12 @@
   "experimental_validation": "NOT PERFORMED",
   "binary_checks": {
     "faraday_units": true,
+    "sdof_energy_balance": true,
     "butler_volmer_limits": true,
     "resonance_amplification": true
   },
-  "passed": 3,
-  "total": 3,
+  "passed": 4,
+  "total": 4,
   "limitations": [
     "beta_stress is phenomenological, requires coupon test calibration",
     "Fretting-corrosion synergy not quantified",
