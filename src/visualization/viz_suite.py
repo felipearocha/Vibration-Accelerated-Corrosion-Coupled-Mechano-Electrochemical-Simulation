@@ -31,6 +31,7 @@ from simulation.vibrocorrosion_engine import (
     butler_volmer_stress_modified, faraday_mass_loss_rate
 )
 from simulation.parametric_sweep import sdof_steady_state_amplitude
+from validation.validation_suite import run_sensitivity_analysis
 
 ASSET_DIR = "assets"
 os.makedirs(ASSET_DIR, exist_ok=True)
@@ -445,22 +446,14 @@ def generate_gif():
 # ============================================================
 # SENSITIVITY BAR CHART
 # ============================================================
-def plot_sensitivity(sensitivity_dict: dict = None):
+def plot_sensitivity(df_path: str = "assets/parametric_sweep.csv"):
     print("[VIZ] Generating sensitivity chart...")
     set_brand_style()
 
-    if sensitivity_dict is None or len(sensitivity_dict) == 0:
-        # Hard-coded estimates, not computed from the sweep
-        sensitivity_dict = {
-            "freq_hz": 0.72,
-            "force_N": 0.65,
-            "stiffness_Nm": -0.41,
-            "damping_ratio": -0.55,
-            "overpotential_V": 0.88,
-            "pH": -0.44,
-            "freq_ratio_r": 0.78
-        }
-        print("[VIZ] Using estimated sensitivity values (no dataset available)")
+    sensitivity_dict = run_sensitivity_analysis(df_path)
+    if not sensitivity_dict:
+        print("[VIZ] No dataset, sensitivity chart skipped.")
+        return None
 
     features = list(sensitivity_dict.keys())
     corrs = [sensitivity_dict[f] for f in features]

@@ -39,6 +39,7 @@ from simulation.parametric_sweep import (
 from validation.validation_suite import (
     check_resonance_amplification, check_sdof_energy_balance
 )
+from visualization import viz_suite
 from cybersecurity.sensor_security import (
     SensorIntegrityChecker, AuditLog, sanitize_simulation_inputs
 )
@@ -199,6 +200,22 @@ def test_resonance_check_fails_without_data():
 
 def test_energy_balance_check_returns_plain_bool():
     assert check_sdof_energy_balance(sim_duration=3.0) is True
+
+
+def test_sensitivity_chart_is_driven_by_the_dataset(capsys, monkeypatch):
+    cols = ["freq_hz", "force_N", "damping_ratio", "overpotential_V", "pH",
+            "stiffness_Nm", "freq_ratio_r"]
+    rng = np.random.default_rng(0)
+    df = pd.DataFrame(rng.random((30, len(cols))), columns=cols)
+    df["CR_rms_mmyr"] = -3.0 * df["pH"]          # pH is the only driver
+    df["in_domain"] = 1
+    with tempfile.TemporaryDirectory() as folder:
+        path = os.path.join(folder, "s.csv")
+        df.to_csv(path, index=False)
+        monkeypatch.setattr(viz_suite, "ASSET_DIR", folder)
+        assert viz_suite.plot_sensitivity(path) is not None
+    out = capsys.readouterr().out
+    assert "pH: r = -1.0000" in out
 
 
 def test_cr_monotonically_increases_with_force():
