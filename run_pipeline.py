@@ -63,7 +63,8 @@ def run_sweep():
     os.makedirs("assets", exist_ok=True)
     df = run_parametric_sweep(output_path="assets/parametric_sweep.csv")
     print(f"\n  Dataset: {len(df):,} rows x {len(df.columns)} columns")
-    print(f"  VAF range: {df['VAF'].min():.3f} to {df['VAF'].max():.3f}")
+    dom = df[df["in_domain"] == 1]
+    print(f"  In-domain rows: {len(dom):,}, VAF {dom['VAF'].min():.3f} to {dom['VAF'].max():.3f}")
     return df
 
 

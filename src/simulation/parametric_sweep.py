@@ -174,8 +174,9 @@ def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd
 
     df = pd.DataFrame(records)
     print(f"[SWEEP] Complete. Total rows: {len(df):,}")
-    print(f"[SWEEP] VAF range: {df['VAF'].min():.3f} to {df['VAF'].max():.3f}")
-    print(f"[SWEEP] CR range: {df['CR_rms_mmyr'].min():.4f} to {df['CR_rms_mmyr'].max():.4f} mm/yr")
+    dom = df[df["in_domain"] == 1]
+    print(f"[SWEEP] In-domain VAF range: {dom['VAF'].min():.3f} to {dom['VAF'].max():.3f}")
+    print(f"[SWEEP] In-domain CR range: {dom['CR_rms_mmyr'].min():.4f} to {dom['CR_rms_mmyr'].max():.4f} mm/yr")
     print(f"[SWEEP] Rows with sigma clamped at yield: {df['sigma_clamped'].sum():,}")
     print(f"[SWEEP] Rows inside the model domain: {df['in_domain'].sum():,}")
 

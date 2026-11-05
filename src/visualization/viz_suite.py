@@ -122,7 +122,7 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
     ax.set_zlabel("CR (mm/yr)", labelpad=12, fontsize=10)
     ax.set_title(
         "VIBRATION-ACCELERATED CORROSION RATE SURFACE\n"
-        f"X65 Steel | CO₂ Brine | pH 4.67 | η = 0.175 V | k=5MN/m",
+        f"X65 Steel | CO₂ Brine | pH 4.67 | η = 0.175 V | k=5MN/m | gaps = outside model domain",
         fontsize=12, fontweight="bold", pad=20
     )
 
@@ -349,7 +349,7 @@ def plot_iso_risk_map():
     ax.set_ylabel("Structural Damping Ratio ζ", fontsize=11)
     ax.set_title(
         "ISO-RISK MAP: Corrosion Rate (mm/yr)\n"
-        f"Force=800N | X65/CO₂ Brine | pH=4.5 | fₙ={fn_hz:.1f}Hz",
+        f"Force=800N | X65/CO₂ Brine | pH=4.5 | fₙ={fn_hz:.1f}Hz | blank = outside model domain",
         fontsize=12, fontweight="bold"
     )
     ax.legend(fontsize=10)
