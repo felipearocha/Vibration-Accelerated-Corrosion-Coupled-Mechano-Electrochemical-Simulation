@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- validation: resonance check now reads real grid rows and fails on missing data (it passed on 0 rows); energy balance is counted, so 4 checks instead of 3
 - sweep: `CR_total_mmyr` fretting term uses cycles per second at the excitation frequency (was 1000x too high, at the natural frequency)
 - engine: one-year depth is the mean rate times one year (was multiplied by 8766 hours)
 - engine: overpotential is now a signed anodic overpotential (was |eta| of a cathodic value), so corrosion rate rises as pH falls

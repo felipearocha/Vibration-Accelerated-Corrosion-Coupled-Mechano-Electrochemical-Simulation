@@ -20,6 +20,7 @@ import os
 import tempfile
 
 import numpy as np
+import pandas as pd
 import pytest
 
 # Add src to path
@@ -34,6 +35,9 @@ from simulation.vibrocorrosion_engine import (
 from simulation.parametric_sweep import (
     sdof_steady_state_amplitude, ph_to_overpotential_correction,
     fretting_rate_mmyr
+)
+from validation.validation_suite import (
+    check_resonance_amplification, check_sdof_energy_balance
 )
 from cybersecurity.sensor_security import (
     SensorIntegrityChecker, AuditLog, sanitize_simulation_inputs
@@ -168,6 +172,33 @@ def test_tampered_audit_log_detected():
 def test_fretting_rate_handcalc():
     # 1 nm per 1000 cycles = 1e-9 mm per cycle; at 15 Hz over 3.156e7 s: 0.4734 mm/yr
     assert fretting_rate_mmyr(1.0, 15.0) == pytest.approx(0.4734)
+
+
+def _slice_csv(folder, peak_r):
+    rows = [{"force_N": 1000.0, "damping_ratio": 0.03, "overpotential_V": 0.15,
+             "pH": 4.5, "stiffness_Nm": 5e6, "freq_ratio_r": r,
+             "VAF": 2.0 if r == peak_r else 1.0} for r in (0.3, 0.6, 1.0)]
+    path = os.path.join(folder, "slice.csv")
+    pd.DataFrame(rows).to_csv(path, index=False)
+    return path
+
+
+def test_resonance_check_passes_on_peak_at_resonance():
+    with tempfile.TemporaryDirectory() as folder:
+        assert check_resonance_amplification(_slice_csv(folder, 1.0)) is True
+
+
+def test_resonance_check_fails_on_peak_away_from_resonance():
+    with tempfile.TemporaryDirectory() as folder:
+        assert check_resonance_amplification(_slice_csv(folder, 0.3)) is False
+
+
+def test_resonance_check_fails_without_data():
+    assert check_resonance_amplification("no_such_file.csv") is False
+
+
+def test_energy_balance_check_returns_plain_bool():
+    assert check_sdof_energy_balance(sim_duration=3.0) is True
 
 
 def test_cr_monotonically_increases_with_force():
