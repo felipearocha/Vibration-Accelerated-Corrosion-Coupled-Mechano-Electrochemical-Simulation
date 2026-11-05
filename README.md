@@ -3,8 +3,6 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20172485.svg)](https://doi.org/10.5281/zenodo.20172485)
 
-**ZIP name:** `integrity_code_series_week4_vibrocorrosion.zip`
-
 ---
 
 ## Integrity Code Series
@@ -13,12 +11,13 @@ Part of an ongoing series of physics-first integrity simulators by Felipe Rocha:
 
 | # | Repo | Domain |
 |---|---|---|
-| Week 3 | [Integrity-code-series-3](https://github.com/felipearocha/Integrity-code-series-3) | F1 lap simulation (six coupled ODEs) |
-| Week 6 | [Integrity-code-series-week6-smartphone-galvanic](https://github.com/felipearocha/Integrity-code-series-week6-smartphone-galvanic) | Smartphone galvanic corrosion (Laplace + Butler-Volmer) |
-| Week 7 | [integrity_code_series_week7_h2_lferw](https://github.com/felipearocha/integrity_code_series_week7_h2_lferw) | LF-ERW H2 conversion (B31.12 + NACE TM0316) |
+| Week 3 | [integrity-code-series-week3-f1-lap-simulation](https://github.com/felipearocha/integrity-code-series-week3-f1-lap-simulation) | F1 lap simulation (six coupled ODEs) |
+| Week 6 | [integrity-code-series-week6-smartphone-galvanic](https://github.com/felipearocha/integrity-code-series-week6-smartphone-galvanic) | Smartphone galvanic corrosion (Laplace + Butler-Volmer) |
+| Week 7 | [integrity-code-series-week7-h2-lferw](https://github.com/felipearocha/integrity-code-series-week7-h2-lferw) | LF-ERW H2 conversion (B31.12 + NACE TM0316) |
 | Week 8 | [integrity-code-series-week8-creep-fatigue-heater](https://github.com/felipearocha/integrity-code-series-week8-creep-fatigue-heater) | Creep-fatigue 9Cr-1Mo (Norton/Omega + Coffin-Manson) |
 | Week 9 | [integrity-code-series-week9-cui](https://github.com/felipearocha/integrity-code-series-week9-cui) | CUI thermohygro-electrochemical (3 PDEs, Strang) |
-| Week 10 | [integrity-code-series-week-10_nnph_scc](https://github.com/felipearocha/integrity-code-series-week-10_nnph_scc) | NNpHSCC full-physics (Chen-Sutherby-Xing + BS 7910) |
+| Week 10 | [integrity-code-series-week10-nnph-scc](https://github.com/felipearocha/integrity-code-series-week10-nnph-scc) | NNpHSCC full-physics (Chen-Sutherby-Xing + BS 7910) |
+| Week 11 | [integrity-code-series-week11-erosion-corrosion-multiphase](https://github.com/felipearocha/integrity-code-series-week11-erosion-corrosion-multiphase) | Erosion-corrosion multiphase (NORSOK M-506 + DNV-RP-O501 + G119 + API 579) |
 | Bonus | [Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation](https://github.com/felipearocha/Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation) | Vibration-accelerated corrosion (SDOF + Butler-Volmer + Archard) |
 | Bonus | [synthetic-integrity-digital-twin-piml](https://github.com/felipearocha/synthetic-integrity-digital-twin-piml) | Physics-informed neural-network surrogate |
 | Bonus | [integrity-data-foundation](https://github.com/felipearocha/integrity-data-foundation) | Engineering data validation baseline |
@@ -32,7 +31,7 @@ A physics-first engineering simulation of vibration-accelerated corrosion in X65
 - Faraday mass loss rate (Corrosion)
 - Archard fretting wear at pipe supports
 
-An ML surrogate (GBR) is trained on 50,000+ physics-generated data points for real-time deployment. All governing equations, boundary conditions, and assumptions are explicit in source code.
+An ML surrogate (GBR) is trained on 50,000 physics-generated data points. All governing equations, boundary conditions, and assumptions are explicit in source code.
 
 ---
 
@@ -41,8 +40,9 @@ An ML surrogate (GBR) is trained on 50,000+ physics-generated data points for re
 1. `beta_stress` (stress-activation coefficient) is phenomenological. Calibration against coupon tests required before production use.
 2. Fretting-corrosion synergy term is NOT modeled. Total material loss may be underestimated by 20-50% in severe fretting contact.
 3. No external experimental dataset was used for validation. Internal consistency only.
-4. pH model uses Nernst approximation only.
+4. pH model uses Nernst approximation only. In this model the computed corrosion rate falls as pH falls, the opposite of real CO2 corrosion; the pH trend must not be used.
 5. Stress model assumes spring-force / contact-area approximation. FEA required for real geometry.
+6. The GBR surrogate is a demonstration, not deployment-ready: on the held-out 20% it scores R² 0.734 and MAPE 1189%, and its force-monotonicity check fails.
 
 ---
 
@@ -78,8 +78,8 @@ thickness_loss = V_wear / contact_area
 ## REPOSITORY STRUCTURE
 
 ```
-integrity_code_series_week4_vibrocorrosion/
 ├── run_pipeline.py              # Master orchestrator (start here)
+├── run_all.py                   # Same as run_pipeline.py
 ├── requirements.txt
 ├── README.md
 ├── src/
@@ -96,22 +96,19 @@ integrity_code_series_week4_vibrocorrosion/
 │       └── sensor_security.py         # Threat model + sensor integrity
 ├── tests/
 │   └── test_all.py                    # Unit test suite
-├── assets/                            # Generated outputs (created at runtime)
-│   ├── parametric_sweep.csv
-│   ├── models/
-│   │   ├── gbr_model.pkl
-│   │   ├── scaler.pkl
-│   │   └── model_manifest.json
-│   ├── hero_3d_cr_surface.png
-│   ├── secondary_time_domain.png
-│   ├── secondary_residuals.png
-│   ├── secondary_isorisk_map.png
-│   ├── secondary_sensitivity.png
-│   ├── vibrocorrosion_sweep.gif
-│   ├── validation_report.json
-│   └── audit_log.jsonl
-├── notebooks/                         # Optional Jupyter exploration
-
+└── assets/                            # Generated outputs (tracked, regenerated by the pipeline)
+    ├── parametric_sweep.csv
+    ├── models/
+    │   ├── gbr_model.pkl
+    │   ├── scaler.pkl
+    │   └── X_test.npy, y_test.npy, y_pred_test.npy
+    ├── hero_3d_cr_surface.png
+    ├── secondary_time_domain.png
+    ├── secondary_residuals.png
+    ├── secondary_isorisk_map.png
+    ├── secondary_sensitivity.png
+    ├── vibrocorrosion_sweep.gif
+    └── validation_report.json
 ```
 
 ---
@@ -126,7 +123,7 @@ pip install -r requirements.txt
 python run_pipeline.py
 
 # 3. OR run steps individually:
-python tests/test_all.py
+python -m pytest tests/ -q        # 19 tests
 python src/simulation/vibrocorrosion_engine.py
 python src/simulation/parametric_sweep.py
 python src/ml/gbr_surrogate.py
@@ -144,28 +141,20 @@ python run_pipeline.py --skip-tests --skip-sweep --skip-ml
 
 | File | Description |
 |------|-------------|
-| `assets/parametric_sweep.csv` | 50,000+ row physics dataset |
+| `assets/parametric_sweep.csv` | 50,000-row physics dataset |
 | `assets/models/gbr_model.pkl` | Trained GBR model |
 | `assets/models/scaler.pkl` | Feature scaler |
 | `assets/hero_3d_cr_surface.png` | Primary hero visualization |
 | `assets/secondary_*.png` | Secondary analysis charts |
 | `assets/vibrocorrosion_sweep.gif` | Animated resonance sweep |
 | `assets/validation_report.json` | Validation check results |
-| `assets/audit_log.jsonl` | Hash-chained audit log |
+| `assets/audit_log.jsonl` | Hash-chained audit log (written only by `sensor_security.py`, not tracked) |
 
 ---
 
-## EXPECTED RUNTIMES (approximate, hardware-dependent)
+## RUNTIME
 
-| Step | Estimated Time |
-|------|---------------|
-| Unit tests | < 30s |
-| Physics simulation (100s, dt=1e-4) | 30-90s |
-| Parametric sweep (50k points) | 2-5 min |
-| ML training (GBR, 400 trees) | 30-120s |
-| Validation suite | 1-3 min |
-| Visual generation | 2-5 min |
-| GIF generation | 1-2 min |
+Full `run_pipeline.py`: about 40-70 s measured on a laptop (Windows 11, Python 3.13). Hardware-dependent.
 
 ---
 
@@ -179,7 +168,7 @@ Production deployment requires IEC 62443 zone/conduit model and HSM for model ha
 
 ## STANDARDS REFERENCED (without specific clause citation)
 
-- API 571: Damage Mechanisms Affecting Fixed Equipment (vibration-induced fatigue/corrosion listed)
+- API 571: Damage Mechanisms Affecting Fixed Equipment (mechanical fatigue, including vibration-induced fatigue)
 - API 580/581: Risk-Based Inspection methodology (probability of failure framework)
 - IEC 62443: Industrial Automation and Control Systems cybersecurity
 

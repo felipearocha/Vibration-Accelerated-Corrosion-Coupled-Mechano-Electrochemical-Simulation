@@ -7,11 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- tests: suite is now collected by pytest (19 tests); it crashed pytest before and CI masked it with `|| true`
+- run_pipeline: no longer aborts on the missing LinkedIn file or on a non-UTF-8 console
+- models: re-saved gbr_model.pkl and scaler.pkl, which no longer loaded with current scikit-learn (predictions unchanged)
+
+### Added
+- run_all.py entry point (alias of run_pipeline.py)
+
 ### Docs
 - docs: insert real Zenodo DOIs (concept 10.5281/zenodo.20172485, version 10.5281/zenodo.20172486)
 
 ### CI
 - ci: drop Python 3.10 from matrix (modern scipy/numpy require >=3.11)
+- ci: test failures now fail the job; bump checkout and setup-python to v7
+- ci: Dependabot keeps pip floors unless needed and groups Actions updates
 ## [0.1.1] - 2026-05-13
 
 ### Changed
