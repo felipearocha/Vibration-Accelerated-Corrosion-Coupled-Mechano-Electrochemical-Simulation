@@ -150,8 +150,7 @@ def predict(
 ) -> float:
     """
     Predict corrosion rate from vibration and environment parameters.
-    Returns CR in mm/yr.
-    Raises ValueError if input is outside training domain.
+    Returns CR in mm/yr. Inputs are not checked against the training domain.
     """
     gbr = joblib.load(os.path.join(model_dir, "gbr_model.pkl"))
     scaler = joblib.load(os.path.join(model_dir, "scaler.pkl"))

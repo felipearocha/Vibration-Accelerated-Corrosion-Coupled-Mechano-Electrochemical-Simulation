@@ -2,7 +2,7 @@
 INTEGRITY CODE SERIES - Week 4
 Parametric Sweep Engine
 
-Generates >= 10,000 physics-consistent data points across the
+Generates 50,000 physics-consistent data points across the
 vibration-corrosion design space for model training and validation.
 
 Parameters swept:
@@ -14,7 +14,7 @@ Parameters swept:
 
 Outputs:
     - CSV with all input parameters and computed outputs
-    - At least 10,000 rows
+    - 50,000 rows
 """
 
 import numpy as np
@@ -31,7 +31,6 @@ from simulation.vibrocorrosion_engine import (
 )
 
 # Sweep grid definition
-# 5 x 5 x 4 x 5 x 4 x 5 = 10,000 combinations
 FREQ_GRID     = np.linspace(5.0,  50.0, 10)   # Hz
 FORCE_GRID    = np.linspace(100.0, 2000.0, 10) # N
 DAMP_GRID     = np.array([0.01, 0.03, 0.05, 0.08, 0.10])
@@ -78,7 +77,7 @@ def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd
     3. Compute stress-modified corrosion rate
     4. Compute fretting wear rate
 
-    Returns DataFrame with >= 10,000 rows.
+    Returns DataFrame with 50,000 rows.
     """
     mp = MaterialParams()
     mass = 50.0

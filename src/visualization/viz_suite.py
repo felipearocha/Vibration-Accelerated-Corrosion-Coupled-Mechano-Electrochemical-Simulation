@@ -64,7 +64,7 @@ def set_brand_style():
 def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
     """
     3D surface: CR_rms_mmyr vs (freq_hz, force_N)
-    Slice at: damping=0.02, pH=5.25, overpot=-0.15, stiffness=5e6
+    Slice at: damping=0.03, pH=4.67, overpot=-0.175, stiffness=5e6
     """
     print("[VIZ] Generating hero 3D surface...")
     set_brand_style()
@@ -450,7 +450,7 @@ def plot_sensitivity(sensitivity_dict: dict = None):
     set_brand_style()
 
     if sensitivity_dict is None or len(sensitivity_dict) == 0:
-        # Compute analytically
+        # Hard-coded estimates, not computed from the sweep
         sensitivity_dict = {
             "freq_hz": 0.72,
             "force_N": 0.65,
