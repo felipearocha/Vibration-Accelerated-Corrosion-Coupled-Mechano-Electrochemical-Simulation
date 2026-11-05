@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- engine: overpotential is now a signed anodic overpotential (was |eta| of a cathodic value), so corrosion rate rises as pH falls
 - engine: anodic Tafel term is now 10^(eta/ba); the slope was inverted (10.8 /V, now 19.2 /V)
 - tests: suite is now collected by pytest (19 tests); it crashed pytest before and CI masked it with `|| true`
 - run_pipeline: no longer aborts on the missing LinkedIn file or on a non-UTF-8 console

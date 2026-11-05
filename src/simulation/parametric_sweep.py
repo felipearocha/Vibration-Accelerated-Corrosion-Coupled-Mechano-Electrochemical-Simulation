@@ -9,7 +9,7 @@ Parameters swept:
     - Excitation frequency (Hz): 5 to 50
     - Excitation force amplitude (N): 100 to 2000
     - Damping ratio: 0.01 to 0.10
-    - Overpotential (V): -0.05 to -0.30
+    - Anodic overpotential (V): 0.05 to 0.30
     - pH: 3.5 to 7.0
 
 Outputs:
@@ -34,7 +34,7 @@ from simulation.vibrocorrosion_engine import (
 FREQ_GRID     = np.linspace(5.0,  50.0, 10)   # Hz
 FORCE_GRID    = np.linspace(100.0, 2000.0, 10) # N
 DAMP_GRID     = np.array([0.01, 0.03, 0.05, 0.08, 0.10])
-OVERPOT_GRID  = np.linspace(-0.05, -0.30, 5)  # V
+OVERPOT_GRID  = np.linspace(0.05, 0.30, 5)  # V
 PH_GRID       = np.linspace(3.5, 7.0, 4)
 STIFFNESS_GRID = np.array([1e6, 3e6, 5e6, 8e6, 12e6])  # N/m
 
@@ -60,9 +60,10 @@ def sdof_steady_state_amplitude(mass, stiffness, damping_ratio, F0, omega_exc):
 
 def ph_to_overpotential_correction(pH: float, pH_ref: float = 4.5) -> float:
     """
-    Simplified pH correction to corrosion driving force.
-    Nernst shift: approximately -0.0592 * (pH - pH_ref) V at 25°C
-    This is an approximation. Does not capture all pH-dependent effects.
+    Simplified pH correction to the anodic overpotential.
+    Nernst shift: approximately -0.0592 * (pH - pH_ref) V at 25°C, so a lower pH
+    raises the driving force. Takes the full Nernst slope as the shift of the
+    corrosion potential, which is an upper bound. Does not capture all pH effects.
     """
     return -0.0592 * (pH - pH_ref)
 

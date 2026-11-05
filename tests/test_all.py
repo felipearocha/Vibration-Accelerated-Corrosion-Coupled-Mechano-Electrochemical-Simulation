@@ -170,17 +170,28 @@ def test_cr_monotonically_increases_with_force():
     assert all(CRs[i] <= CRs[i+1] for i in range(len(CRs)-1))
 
 
-def test_cr_decreases_as_ph_decreases_nernst_model():
-    # NOTE: this pins the model's behaviour, not real CO2 corrosion, where lower
-    # pH is more corrosive. ph_to_overpotential_correction = -0.0592*(pH - pH_ref)
-    # is positive for pH < pH_ref, which reduces |eta| and therefore the current.
-    CRs_pH = []
-    for pH in [7.0, 5.5, 4.5, 3.5]:
-        eta = -0.15 + ph_to_overpotential_correction(pH)
-        ep_ph = EnvironmentParams(overpotential=eta, pH=pH)
-        i_c = butler_volmer_stress_modified(np.array([50e6]), mp, ep_ph)[0]
-        CRs_pH.append(faraday_mass_loss_rate(np.array([i_c]), mp)[0])
-    assert all(CRs_pH[i] >= CRs_pH[i+1] for i in range(len(CRs_pH)-1))
+def _cr_at_ph(pH):
+    eta = 0.15 + ph_to_overpotential_correction(pH)
+    ep_ph = EnvironmentParams(overpotential=eta, pH=pH)
+    i_c = butler_volmer_stress_modified(np.array([50e6]), mp, ep_ph)[0]
+    return faraday_mass_loss_rate(np.array([i_c]), mp)[0]
+
+
+def test_cr_increases_as_ph_decreases():
+    CRs_pH = [_cr_at_ph(pH) for pH in [7.0, 5.5, 4.5, 3.5]]
+    assert all(CRs_pH[i] < CRs_pH[i+1] for i in range(len(CRs_pH)-1))
+
+
+def test_cr_ratio_per_ph_unit_handcalc():
+    # 59.2 mV per pH unit on a 120 mV/decade slope: 10**(0.0592/0.12) = 3.1141
+    assert _cr_at_ph(3.5) / _cr_at_ph(4.5) == pytest.approx(3.1141, abs=1e-3)
+
+
+def test_bv_cathodic_overpotential_lowers_anodic_current():
+    ep_cath = EnvironmentParams(overpotential=-mp.ba)
+    i = butler_volmer_stress_modified(np.array([0.0]), mp, ep_cath)[0]
+    assert i == pytest.approx(0.1 * mp.i0_ref)
+
 
 
 if __name__ == "__main__":

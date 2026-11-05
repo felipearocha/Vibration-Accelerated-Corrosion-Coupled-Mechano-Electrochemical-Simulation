@@ -64,7 +64,7 @@ class EnvironmentParams:
     """CO2-saturated 3.5 wt% NaCl brine at 25°C (representative)."""
     temperature: float  = 298.15       # K
     pH: float           = 4.5          # bulk pH
-    overpotential: float = -0.15       # V  (cathodic polarization driving force)
+    overpotential: float = 0.15        # V  (anodic overpotential of Fe dissolution, E_corr - E_eq)
     corrosion_potential_ref: float = -0.65  # V vs SHE (estimated, not verified against specific test)
 
 
@@ -194,7 +194,7 @@ def butler_volmer_stress_modified(
     i0_eff = mp.i0_ref * np.exp(stress_arg)
 
     # Anodic current (Butler-Volmer, anodic branch only, cathodic neglected for anodic scan)
-    i_anodic = i0_eff * 10.0 ** (np.abs(eta) / mp.ba)
+    i_anodic = i0_eff * 10.0 ** (eta / mp.ba)
 
     return i_anodic  # A/cm²
 

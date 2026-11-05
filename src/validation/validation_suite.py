@@ -112,15 +112,14 @@ def check_bv_limits() -> bool:
     print(f"[VAL] BV limit at eta=0: i={i_at_zero_eta[0]:.2e}, i0={expected:.2e}, "
           f"err={rel_err:.2e}  -> {'PASS' if check1 else 'FAIL'}")
 
-    # Monotonicity: higher overpotential -> higher anodic current
-    etas = np.linspace(-0.3, -0.01, 10)
+    # Monotonicity: higher anodic overpotential -> higher anodic current
+    etas = np.linspace(0.01, 0.3, 10)
     i_vals = []
     for eta in etas:
         ep2 = EnvironmentParams(overpotential=eta)
         i_vals.append(butler_volmer_stress_modified(sigma_zero, mp, ep2)[0])
-    # More negative eta -> higher driving force -> higher current
-    check2 = all(i_vals[i] >= i_vals[i+1] for i in range(len(i_vals)-1))
-    print(f"[VAL] BV monotonicity (more cathodic -> more anodic current): {'PASS' if check2 else 'FAIL'}")
+    check2 = all(i_vals[i] <= i_vals[i+1] for i in range(len(i_vals)-1))
+    print(f"[VAL] BV monotonicity (more anodic -> more anodic current): {'PASS' if check2 else 'FAIL'}")
 
     return check1 and check2
 

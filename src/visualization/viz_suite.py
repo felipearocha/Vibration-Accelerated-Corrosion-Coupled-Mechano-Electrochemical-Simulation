@@ -64,7 +64,7 @@ def set_brand_style():
 def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
     """
     3D surface: CR_rms_mmyr vs (freq_hz, force_N)
-    Slice at: damping=0.03, pH=4.67, overpot=-0.175, stiffness=5e6
+    Slice at: damping=0.03, pH=4.67, overpot=0.175, stiffness=5e6
     """
     print("[VIZ] Generating hero 3D surface...")
     set_brand_style()
@@ -73,8 +73,8 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
         df = pd.read_csv(df_path)
         mask = (
             (df["damping_ratio"] == 0.03) &
-            (df["pH"] == 4.666666666666667) &
-            (df["overpotential_V"] == -0.175) &
+            np.isclose(df["pH"], 4.666666666666667) &
+            np.isclose(df["overpotential_V"], 0.175) &
             (df["stiffness_Nm"] == 5e6)
         )
         subset = df[mask]
@@ -119,7 +119,7 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
     ax.set_zlabel("CR (mm/yr)", labelpad=12, fontsize=10)
     ax.set_title(
         "VIBRATION-ACCELERATED CORROSION RATE SURFACE\n"
-        f"X65 Steel | CO₂ Brine | pH 5.25 | η = -0.15V | k=5MN/m",
+        f"X65 Steel | CO₂ Brine | pH 4.67 | η = 0.175 V | k=5MN/m",
         fontsize=12, fontweight="bold", pad=20
     )
 
@@ -140,7 +140,7 @@ def _hero_fallback():
     """Generate hero without dataset (analytical calculation)."""
     set_brand_style()
     mp = MaterialParams()
-    ep = EnvironmentParams(overpotential=-0.15, pH=5.25)
+    ep = EnvironmentParams(overpotential=0.15, pH=4.5)
     mass, k = 50.0, 5e6
     contact_area = 1e-4
     damp = 0.03
@@ -170,7 +170,7 @@ def _hero_fallback():
     ax.set_xlabel("Excitation Freq (Hz)", labelpad=12)
     ax.set_ylabel("Force (N)", labelpad=12)
     ax.set_zlabel("CR (mm/yr)", labelpad=12)
-    ax.set_title("VIBRATION-ACCELERATED CORROSION RATE SURFACE\nX65 | CO₂ Brine | η=-0.15V", fontsize=12, fontweight="bold")
+    ax.set_title("VIBRATION-ACCELERATED CORROSION RATE SURFACE\nX65 | CO₂ Brine | η=0.15 V", fontsize=12, fontweight="bold")
     fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Week 4", fontsize=8, color=ACCENT2, alpha=0.7)
     ax.view_init(elev=25, azim=225)
     plt.tight_layout()
@@ -188,7 +188,7 @@ def plot_time_domain():
     set_brand_style()
 
     mp = MaterialParams()
-    ep = EnvironmentParams(overpotential=-0.15, pH=5.25)
+    ep = EnvironmentParams(overpotential=0.15, pH=4.5)
     vp = VibrationParams(excitation_freq_hz=15.0)
 
     t, x, v = sdof_damped_response(vp, t_end=2.0, dt=5e-5)
@@ -298,7 +298,7 @@ def plot_iso_risk_map():
     set_brand_style()
 
     mp = MaterialParams()
-    ep = EnvironmentParams(overpotential=-0.15, pH=5.25)
+    ep = EnvironmentParams(overpotential=0.15, pH=4.5)
     mass, k = 50.0, 5e6
     contact_area = 1e-4
     force = 800.0
@@ -344,7 +344,7 @@ def plot_iso_risk_map():
     ax.set_ylabel("Structural Damping Ratio ζ", fontsize=11)
     ax.set_title(
         "ISO-RISK MAP: Corrosion Rate (mm/yr)\n"
-        f"Force=800N | X65/CO₂ Brine | pH=5.25 | fₙ={fn_hz:.1f}Hz",
+        f"Force=800N | X65/CO₂ Brine | pH=4.5 | fₙ={fn_hz:.1f}Hz",
         fontsize=12, fontweight="bold"
     )
     ax.legend(fontsize=10)
@@ -369,7 +369,7 @@ def generate_gif():
     set_brand_style()
 
     mp = MaterialParams()
-    ep = EnvironmentParams(overpotential=-0.15, pH=5.25)
+    ep = EnvironmentParams(overpotential=0.15, pH=4.5)
     mass, k = 50.0, 5e6
     contact_area = 1e-4
     force = 800.0
