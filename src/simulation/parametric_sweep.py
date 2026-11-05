@@ -68,6 +68,12 @@ def ph_to_overpotential_correction(pH: float, pH_ref: float = 4.5) -> float:
     return -0.0592 * (pH - pH_ref)
 
 
+def fretting_rate_mmyr(thickness_nm_per_1000_cycles: float, freq_hz: float) -> float:
+    """Archard thickness loss per 1000 cycles [nm] to a rate [mm/yr] at freq_hz."""
+    mm_per_cycle = thickness_nm_per_1000_cycles * 1e-6 / 1000.0
+    return mm_per_cycle * freq_hz * 3.156e7
+
+
 def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd.DataFrame:
     """
     Generate parametric sweep dataset.
@@ -158,7 +164,7 @@ def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd
             "VAF": VAF,                              # Vibration Amplification Factor
             "fretting_nm_per_1000cycles": thickness_per_1000_cycles_nm,
             "at_resonance": at_resonance,
-            "CR_total_mmyr": CR_rms + (thickness_per_1000_cycles_nm * 1e-6 * fn_hz * 3.156e7),
+            "CR_total_mmyr": CR_rms + fretting_rate_mmyr(thickness_per_1000_cycles_nm, freq_hz),
         })
 
         count += 1

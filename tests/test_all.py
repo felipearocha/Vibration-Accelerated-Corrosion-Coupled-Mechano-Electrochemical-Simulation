@@ -32,7 +32,8 @@ from simulation.vibrocorrosion_engine import (
     fretting_wear_rate
 )
 from simulation.parametric_sweep import (
-    sdof_steady_state_amplitude, ph_to_overpotential_correction
+    sdof_steady_state_amplitude, ph_to_overpotential_correction,
+    fretting_rate_mmyr
 )
 from cybersecurity.sensor_security import (
     SensorIntegrityChecker, AuditLog, sanitize_simulation_inputs
@@ -164,6 +165,11 @@ def test_tampered_audit_log_detected():
 # ============================================================
 # PARAMETRIC CONSISTENCY TESTS
 # ============================================================
+def test_fretting_rate_handcalc():
+    # 1 nm per 1000 cycles = 1e-9 mm per cycle; at 15 Hz over 3.156e7 s: 0.4734 mm/yr
+    assert fretting_rate_mmyr(1.0, 15.0) == pytest.approx(0.4734)
+
+
 def test_cr_monotonically_increases_with_force():
     CRs = []
     for force in [100.0, 500.0, 1000.0, 2000.0]:
