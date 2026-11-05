@@ -29,6 +29,13 @@ FARADAY = 96485.0       # C/mol
 R_GAS   = 8.314         # J/(mol·K)
 
 
+# [ASSUMED] Upper limit of the model domain, on RMS surface stress. The stress
+# term exp(beta_stress*sigma/(R*T)) is an uncalibrated exponential, documented at
+# 50 MPa (argument ~1). 100 MPa keeps the argument near 2, so the stress factor
+# stays below about 7.5x. Above it the term is an extrapolation with no support.
+SIGMA_RMS_DOMAIN_MAX = 100e6  # Pa
+
+
 # ============================================================
 # MATERIAL AND ENVIRONMENT PARAMETERS
 # ============================================================

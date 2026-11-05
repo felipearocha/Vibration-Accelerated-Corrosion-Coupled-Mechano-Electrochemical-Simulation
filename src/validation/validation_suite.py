@@ -134,6 +134,7 @@ def run_sensitivity_analysis(df_path: str = "assets/parametric_sweep.csv") -> di
         return {}
 
     df = pd.read_csv(df_path)
+    df = df[df["in_domain"] == 1]
     features = ["freq_hz", "force_N", "damping_ratio", "overpotential_V", "pH", "stiffness_Nm", "freq_ratio_r"]
     corr = {}
     for f in features:

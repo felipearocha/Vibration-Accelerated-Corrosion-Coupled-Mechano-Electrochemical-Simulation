@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from simulation.vibrocorrosion_engine import (
     MaterialParams, EnvironmentParams, VibrationParams,
     sdof_damped_response, compute_dynamic_stress,
-    butler_volmer_stress_modified, faraday_mass_loss_rate
+    butler_volmer_stress_modified, faraday_mass_loss_rate, SIGMA_RMS_DOMAIN_MAX
 )
 from simulation.parametric_sweep import sdof_steady_state_amplitude
 from validation.validation_suite import run_sensitivity_analysis
@@ -87,8 +87,10 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
             for i, freq in enumerate(freq_vals):
                 for j, force in enumerate(force_vals):
                     row = subset[(subset["freq_hz"]==freq) & (subset["force_N"]==force)]
-                    if len(row) > 0:
+                    if len(row) > 0 and row["in_domain"].values[0] == 1:
                         Z[i, j] = row["CR_rms_mmyr"].values[0]
+                    else:
+                        Z[i, j] = np.nan  # outside the model domain
         else:
             _hero_fallback()
             return
@@ -156,9 +158,10 @@ def _hero_fallback():
             omega = 2 * np.pi * freq
             x_ss = sdof_steady_state_amplitude(mass, k, damp, force, omega)
             sigma = (k * x_ss / np.sqrt(2)) / contact_area
-            sigma = min(sigma, mp.yield_strength)
             i_corr = butler_volmer_stress_modified(np.array([sigma]), mp, ep)[0]
             Z[i, j] = faraday_mass_loss_rate(np.array([i_corr]), mp)[0]
+            if sigma > SIGMA_RMS_DOMAIN_MAX:
+                Z[i, j] = np.nan  # outside the model domain
 
     fig = plt.figure(figsize=(14, 9), facecolor=BRAND_COLOR)
     ax = fig.add_subplot(111, projection='3d')
@@ -315,9 +318,10 @@ def plot_iso_risk_map():
             omega = 2 * np.pi * freq
             x_ss = sdof_steady_state_amplitude(mass, k, damp, force, omega)
             sigma = (k * x_ss / np.sqrt(2)) / contact_area
-            sigma = min(sigma, mp.yield_strength)
             i_corr = butler_volmer_stress_modified(np.array([sigma]), mp, ep)[0]
             Z[i, j] = faraday_mass_loss_rate(np.array([i_corr]), mp)[0]
+            if sigma > SIGMA_RMS_DOMAIN_MAX:
+                Z[i, j] = np.nan  # outside the model domain
 
     fig, ax = plt.subplots(figsize=(12, 8), facecolor=BRAND_COLOR)
     ax.set_facecolor(BRAND_COLOR)

@@ -30,7 +30,7 @@ from simulation.vibrocorrosion_engine import (
     run_simulation, MaterialParams, EnvironmentParams, VibrationParams,
     sdof_damped_response, compute_dynamic_stress,
     butler_volmer_stress_modified, faraday_mass_loss_rate,
-    fretting_wear_rate
+    fretting_wear_rate, R_GAS, SIGMA_RMS_DOMAIN_MAX
 )
 from simulation.parametric_sweep import (
     sdof_steady_state_amplitude, ph_to_overpotential_correction,
@@ -39,6 +39,7 @@ from simulation.parametric_sweep import (
 from validation.validation_suite import (
     check_resonance_amplification, check_sdof_energy_balance
 )
+from ml.gbr_surrogate import train_gbr, FEATURE_COLS, TARGET_COL
 from visualization import viz_suite
 from cybersecurity.sensor_security import (
     SensorIntegrityChecker, AuditLog, sanitize_simulation_inputs
@@ -216,6 +217,23 @@ def test_sensitivity_chart_is_driven_by_the_dataset(capsys, monkeypatch):
         assert viz_suite.plot_sensitivity(path) is not None
     out = capsys.readouterr().out
     assert "pH: r = -1.0000" in out
+
+
+def test_sweep_vaf_is_bounded_inside_the_domain():
+    path = os.path.join(os.path.dirname(__file__), "..", "assets", "parametric_sweep.csv")
+    df = pd.read_csv(path)
+    bound = np.exp(mp.beta_stress * SIGMA_RMS_DOMAIN_MAX / (R_GAS * ep.temperature))
+    assert df.loc[df["in_domain"] == 1, "VAF"].max() <= bound
+
+
+def test_surrogate_trains_on_domain_rows_only():
+    rng = np.random.default_rng(0)
+    df = pd.DataFrame(rng.random((60, len(FEATURE_COLS))), columns=FEATURE_COLS)
+    df[TARGET_COL] = rng.random(60)
+    df["in_domain"] = [1] * 50 + [0] * 10
+    with tempfile.TemporaryDirectory() as folder:
+        result = train_gbr(df, model_dir=folder)
+    assert len(result["X_test"]) == 10   # 20% of the 50 domain rows
 
 
 def test_cr_monotonically_increases_with_force():

@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from simulation.vibrocorrosion_engine import (
     MaterialParams, EnvironmentParams, VibrationParams,
     sdof_damped_response, compute_dynamic_stress,
-    butler_volmer_stress_modified, faraday_mass_loss_rate
+    butler_volmer_stress_modified, faraday_mass_loss_rate, SIGMA_RMS_DOMAIN_MAX
 )
 
 # Sweep grid definition
@@ -164,6 +164,7 @@ def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd
             "VAF": VAF,                              # Vibration Amplification Factor
             "fretting_nm_per_1000cycles": thickness_per_1000_cycles_nm,
             "at_resonance": at_resonance,
+            "in_domain": 1 if sigma_rms_clamped <= SIGMA_RMS_DOMAIN_MAX else 0,
             "CR_total_mmyr": CR_rms + fretting_rate_mmyr(thickness_per_1000_cycles_nm, freq_hz),
         })
 
@@ -176,6 +177,7 @@ def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd
     print(f"[SWEEP] VAF range: {df['VAF'].min():.3f} to {df['VAF'].max():.3f}")
     print(f"[SWEEP] CR range: {df['CR_rms_mmyr'].min():.4f} to {df['CR_rms_mmyr'].max():.4f} mm/yr")
     print(f"[SWEEP] Rows with sigma clamped at yield: {df['sigma_clamped'].sum():,}")
+    print(f"[SWEEP] Rows inside the model domain: {df['in_domain'].sum():,}")
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df.to_csv(output_path, index=False)

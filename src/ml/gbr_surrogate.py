@@ -53,8 +53,10 @@ def train_gbr(df: pd.DataFrame, model_dir: str = "assets/models") -> dict:
     """
     Train GBR surrogate on physics simulation data.
 
+    Trains on rows inside the model domain only.
     Returns metrics and saves model artifacts.
     """
+    df = df[df["in_domain"] == 1]
     X = df[FEATURE_COLS].values
     y = df[TARGET_COL].values
 
