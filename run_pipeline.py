@@ -54,7 +54,7 @@ def run_simulation():
     print(f"  Static CR (no vib):     {s['CR_static_mmyr']:.4f} mm/yr")
     print(f"  Vibration Amplification Factor (VAF): {s['vibration_amplification']:.3f}x")
     print(f"  Fretting loss ({s['n_cycles_simulated']} cycles): {s['fretting_loss_nm']:.2f} nm")
-    print(f"  Projected 1-yr depth:   {s['projected_1yr_depth_mm']:.3f} mm/yr")
+    print(f"  Projected 1-yr depth:   {s['projected_1yr_depth_mm']:.3f} mm")
     return results
 
 

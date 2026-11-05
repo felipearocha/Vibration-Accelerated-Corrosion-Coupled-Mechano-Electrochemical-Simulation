@@ -26,7 +26,7 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from simulation.vibrocorrosion_engine import (
-    MaterialParams, EnvironmentParams, VibrationParams,
+    run_simulation, MaterialParams, EnvironmentParams, VibrationParams,
     sdof_damped_response, compute_dynamic_stress,
     butler_volmer_stress_modified, faraday_mass_loss_rate,
     fretting_wear_rate
@@ -84,6 +84,11 @@ def test_bv_tafel_slope_handcalc():
     ep_ba = EnvironmentParams(overpotential=mp.ba)
     i = butler_volmer_stress_modified(np.array([0.0]), mp, ep_ba)[0]
     assert i == pytest.approx(10.0 * mp.i0_ref)
+
+
+def test_one_year_depth_equals_mean_rate_times_one_year():
+    s = run_simulation(t_end_seconds=1.0, dt=1e-3)["summary"]
+    assert s["projected_1yr_depth_mm"] == pytest.approx(s["CR_mean_mmyr"])
 
 
 def test_bv_current_increases_with_stress():

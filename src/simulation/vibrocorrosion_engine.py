@@ -324,7 +324,7 @@ def run_simulation(
     vibration_amplification = CR_mean / CR_static if CR_static > 0 else np.nan
 
     # Extrapolate 1-year corrosion depth
-    CR_1yr_mm = CR_mean * (365.25 * 24)  # mm/yr assuming steady state
+    CR_1yr_mm = CR_mean * 1.0  # mm/yr over one year, assuming steady state
 
     print(f"[SIM] Natural frequency: {fn_hz:.2f} Hz")
     print(f"[SIM] Excitation frequency: {vp.excitation_freq_hz:.2f} Hz")
