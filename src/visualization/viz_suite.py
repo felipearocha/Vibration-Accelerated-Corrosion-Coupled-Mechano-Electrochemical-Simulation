@@ -1,5 +1,5 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 Visualization Suite
 
 Produces:
@@ -127,7 +127,7 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
     )
 
     # Watermark
-    fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Week 4 | Physics-First",
+    fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Bonus | Physics-First",
              fontsize=8, color=ACCENT2, alpha=0.7)
 
     ax.view_init(elev=25, azim=225)
@@ -175,7 +175,7 @@ def _hero_fallback():
     ax.set_ylabel("Force (N)", labelpad=12)
     ax.set_zlabel("CR (mm/yr)", labelpad=12)
     ax.set_title("VIBRATION-ACCELERATED CORROSION RATE SURFACE\nX65 | CO₂ Brine | η=0.15 V", fontsize=12, fontweight="bold")
-    fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Week 4", fontsize=8, color=ACCENT2, alpha=0.7)
+    fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Bonus", fontsize=8, color=ACCENT2, alpha=0.7)
     ax.view_init(elev=25, azim=225)
     plt.tight_layout()
     out = f"{ASSET_DIR}/hero_3d_cr_surface.png"
@@ -221,7 +221,7 @@ def plot_time_domain():
     axes[2].set_xlabel("Time (s)", fontsize=10)
     axes[2].grid(True, alpha=0.3)
 
-    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Week 4 | Mechano-Electrochemical Coupling",
+    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | Mechano-Electrochemical Coupling",
              fontsize=8, color=ACCENT2, alpha=0.7)
 
     out = f"{ASSET_DIR}/secondary_time_domain.png"
@@ -283,7 +283,7 @@ def plot_residuals(model_dir: str = "assets/models"):
     ax2.legend(fontsize=9)
     ax2.grid(True, alpha=0.3)
 
-    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Week 4 | ML Surrogate Validation",
+    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | ML Surrogate Validation",
              fontsize=8, color=ACCENT2, alpha=0.7)
 
     plt.tight_layout()
@@ -355,7 +355,7 @@ def plot_iso_risk_map():
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.2)
 
-    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Week 4 | Iso-Risk Corrosion Map",
+    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | Iso-Risk Corrosion Map",
              fontsize=8, color=ACCENT2, alpha=0.7)
 
     plt.tight_layout()
@@ -433,7 +433,7 @@ def generate_gif():
                           fontsize=10, fontweight="bold")
         axes[1].grid(True, alpha=0.3)
 
-        fig.suptitle("INTEGRITY CODE SERIES | Week 4 | Vibration→Corrosion Sweep",
+        fig.suptitle("INTEGRITY CODE SERIES | Bonus | Vibration→Corrosion Sweep",
                      color=ACCENT2, fontsize=11, y=0.98)
 
         return axes
@@ -480,7 +480,7 @@ def plot_sensitivity(df_path: str = "assets/parametric_sweep.csv"):
         ax.text(val + 0.01 * np.sign(val), bar.get_y() + bar.get_height()/2,
                 f"{val:+.3f}", va="center", fontsize=9, color="white")
 
-    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Week 4 | Sensitivity", fontsize=8, color=ACCENT2, alpha=0.7)
+    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | Sensitivity", fontsize=8, color=ACCENT2, alpha=0.7)
     plt.tight_layout()
     out = f"{ASSET_DIR}/secondary_sensitivity.png"
     plt.savefig(out, dpi=150, bbox_inches="tight", facecolor=BRAND_COLOR)
@@ -494,7 +494,7 @@ def plot_sensitivity(df_path: str = "assets/parametric_sweep.csv"):
 # ============================================================
 def run_all_visuals():
     print("\n" + "="*60)
-    print("INTEGRITY CODE SERIES | Week 4 | Visual Suite")
+    print("INTEGRITY CODE SERIES | Bonus | Visual Suite")
     print("="*60)
     plot_hero_3d_surface()
     plot_time_domain()

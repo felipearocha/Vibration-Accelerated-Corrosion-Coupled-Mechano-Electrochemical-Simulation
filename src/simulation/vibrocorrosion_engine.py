@@ -1,5 +1,5 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 Vibration-Accelerated Corrosion: Coupled Mechano-Electrochemical Simulation Engine
 
 Governing Physics:

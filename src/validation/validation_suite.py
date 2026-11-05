@@ -1,5 +1,5 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 Validation and Verification Module
 
 Performs:
@@ -182,7 +182,7 @@ def check_resonance_amplification(df_path: str = "assets/parametric_sweep.csv") 
 def run_all_validations(df_path: str = "assets/parametric_sweep.csv") -> dict:
     """Run all validation checks and return summary."""
     print("\n" + "="*60)
-    print("INTEGRITY CODE SERIES - Week 4: VALIDATION SUITE")
+    print("INTEGRITY CODE SERIES - Bonus: VALIDATION SUITE")
     print("="*60)
 
     results = {}

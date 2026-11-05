@@ -1,5 +1,5 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 ML Baseline: Gradient Boosted Corrosion Rate Predictor
 
 Justification for ML use:
