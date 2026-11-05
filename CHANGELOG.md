@@ -16,9 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - engine: one-year depth is the mean rate times one year (was multiplied by 8766 hours)
 - engine: overpotential is now a signed anodic overpotential (was |eta| of a cathodic value), so corrosion rate rises as pH falls
 - engine: anodic Tafel term is now 10^(eta/ba); the slope was inverted (10.8 /V, now 19.2 /V)
-- tests: suite is now collected by pytest (19 tests); it crashed pytest before and CI masked it with `|| true`
+- tests: suite is now collected by pytest (31 tests); it crashed pytest before and CI masked it with `|| true`
 - run_pipeline: no longer aborts on the missing LinkedIn file or on a non-UTF-8 console
-- models: re-saved gbr_model.pkl and scaler.pkl, which no longer loaded with current scikit-learn (predictions unchanged)
+- models: gbr_model.pkl and scaler.pkl retrained with current scikit-learn; the old files no longer loaded
+
+### Results
+- Default case CR 0.222 mm/yr (was 0.063); surrogate R2 0.972, MAPE 57.8% (was 0.734, 1189%); validation 4/4 (was 3/3)
+- All figures regenerated; figure label changed from Week 4 to Bonus
 
 ### Added
 - run_all.py entry point (alias of run_pipeline.py)
@@ -41,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.1]: https://github.com/felipearocha/Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation/releases/tag/v0.1.1
 ## [0.1.0] - 2026-03-11
+
+### Results
+- Default case CR 0.222 mm/yr (was 0.063); surrogate R2 0.972, MAPE 57.8% (was 0.734, 1189%); validation 4/4 (was 3/3)
+- All figures regenerated; figure label changed from Week 4 to Bonus
 
 ### Added
 - Add files via upload
