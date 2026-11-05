@@ -4,8 +4,7 @@ ML Baseline: Gradient Boosted Corrosion Rate Predictor
 
 Justification for ML use:
     The corrosion rate surface over {freq, force, damping, pH, overpotential, stiffness}
-    is highly nonlinear near resonance. A GBR can serve as a fast surrogate
-    (microseconds vs milliseconds for ODE) for real-time monitoring.
+    is highly nonlinear near resonance. A GBR can serve as a surrogate of it.
 
     ML is NOT replacing physics. It is a surrogate for the physics simulation.
     Physics constraints are enforced via input validation and monotonicity checks.
