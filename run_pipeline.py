@@ -11,10 +11,8 @@ Execution order:
     6. Generate all visuals
     7. Print ROI summary
     8. Print cybersecurity threat model
-    9. Print LinkedIn summary
 
 Usage:
-    cd integrity_code_series_week4_vibrocorrosion
     pip install -r requirements.txt
     python run_pipeline.py [--skip-tests] [--skip-sweep] [--skip-ml] [--skip-viz]
 """
@@ -50,7 +48,7 @@ def run_simulation():
     s = results["summary"]
     print(f"\n  Natural frequency:      {s['natural_freq_hz']:.2f} Hz")
     print(f"  Excitation frequency:   {s['excitation_freq_hz']:.2f} Hz")
-    print(f"  RMS displacement:       {s['x_rms_um']:.2f} μm")
+    print(f"  RMS displacement:       {s['x_rms_um']:.2f} um")
     print(f"  RMS surface stress:     {s['sigma_rms_MPa']:.2f} MPa")
     print(f"  Vibration-driven CR:    {s['CR_mean_mmyr']:.4f} mm/yr")
     print(f"  Static CR (no vib):     {s['CR_static_mmyr']:.4f} mm/yr")
@@ -61,7 +59,7 @@ def run_simulation():
 
 
 def run_sweep():
-    section("STEP 3: PARAMETRIC SWEEP (10,000+ data points)")
+    section("STEP 3: PARAMETRIC SWEEP (50,000 data points)")
     from simulation.parametric_sweep import run_parametric_sweep
     os.makedirs("assets", exist_ok=True)
     df = run_parametric_sweep(output_path="assets/parametric_sweep.csv")
@@ -145,12 +143,6 @@ def print_cybersecurity():
     print_threat_model()
 
 
-def print_linkedin():
-    section("STEP 9: LINKEDIN TECHNICAL SUMMARY")
-    with open("linkedin/linkedin_post.txt") as f:
-        print(f.read())
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip-tests",  action="store_true")
@@ -185,14 +177,11 @@ def main():
 
     print_roi_summary()
     print_cybersecurity()
-    print_linkedin()
 
     elapsed = time.time() - t0
     section("PIPELINE COMPLETE")
     print(f"  Total elapsed: {elapsed:.1f}s")
-    print("\n  Outputs in: assets/")
-    print("  This repository is intended to be zipped as:")
-    print("  integrity_code_series_week4_vibrocorrosion.zip\n")
+    print("\n  Outputs in: assets/\n")
 
 
 if __name__ == "__main__":
