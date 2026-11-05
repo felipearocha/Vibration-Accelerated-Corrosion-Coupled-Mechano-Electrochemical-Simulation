@@ -10,7 +10,7 @@ Produces:
 5. Secondary 4: Vibration Amplification Factor heatmap
 6. GIF: Animated CR evolution as frequency sweeps through resonance
 
-All plots use matplotlib/numpy only (no hallucinated libraries).
+All plots use matplotlib/numpy only.
 """
 
 import numpy as np

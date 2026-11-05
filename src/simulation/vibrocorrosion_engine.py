@@ -10,7 +10,7 @@ Governing Physics:
 5. Fretting wear (Archard's law) as mechanical degradation pathway
 
 All equations explicitly defined. All boundary conditions stated.
-No hallucinated standards or papers cited.
+Sources are named where they are used.
 
 Author: INTEGRITY CODE SERIES
 """
@@ -56,8 +56,7 @@ class MaterialParams:
     # Physical basis: stress increases Gibbs free energy at metal surface, lowering activation barrier
     # i0_eff = i0_ref * exp(beta_stress * sigma / (R*T))
     # At sigma=50 MPa, beta_stress=5e-5 m³/mol: argument = 5e-5*5e7/2478 ~ 1.0
-    # Molar activation volume ~50 cm³/mol is in published range for stress-corrosion systems
-    # EXPLICIT: this value is literature-informed but NOT calibrated against experiment here
+    # EXPLICIT: this value is an unsourced assumption, NOT calibrated against experiment
     beta_stress: float  = 5e-5        # m³/mol (molar activation volume) -- REQUIRES CALIBRATION
     # Anodic/cathodic Tafel slopes
     ba: float = 0.12                   # V/decade  anodic
