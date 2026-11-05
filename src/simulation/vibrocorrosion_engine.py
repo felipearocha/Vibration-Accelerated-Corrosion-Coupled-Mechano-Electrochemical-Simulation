@@ -1,5 +1,5 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 Vibration-Accelerated Corrosion: Coupled Mechano-Electrochemical Simulation Engine
 
 Governing Physics:
@@ -10,7 +10,7 @@ Governing Physics:
 5. Fretting wear (Archard's law) as mechanical degradation pathway
 
 All equations explicitly defined. All boundary conditions stated.
-No hallucinated standards or papers cited.
+Sources are named where they are used.
 
 Author: INTEGRITY CODE SERIES
 """
@@ -29,6 +29,13 @@ FARADAY = 96485.0       # C/mol
 R_GAS   = 8.314         # J/(mol·K)
 
 
+# [ASSUMED] Upper limit of the model domain, on RMS surface stress. The stress
+# term exp(beta_stress*sigma/(R*T)) is an uncalibrated exponential, documented at
+# 50 MPa (argument ~1). 100 MPa keeps the argument near 2, so the stress factor
+# stays below about 7.5x. Above it the term is an extrapolation with no support.
+SIGMA_RMS_DOMAIN_MAX = 100e6  # Pa
+
+
 # ============================================================
 # MATERIAL AND ENVIRONMENT PARAMETERS
 # ============================================================
@@ -41,7 +48,6 @@ class MaterialParams:
     youngs_modulus: float = 200e9       # Pa
     yield_strength: float = 448e6      # Pa  (X65 minimum)
     hardness_vickers: float = 200.0    # HV
-    alpha_tafel: float  = 0.5          # charge transfer symmetry factor
     i0_ref: float       = 1e-6         # A/cm²  exchange current density at zero stress
     # Stress sensitivity of exchange current density
     # Physical basis: stress increases surface Gibbs free energy, lowering activation barrier
@@ -50,8 +56,7 @@ class MaterialParams:
     # Physical basis: stress increases Gibbs free energy at metal surface, lowering activation barrier
     # i0_eff = i0_ref * exp(beta_stress * sigma / (R*T))
     # At sigma=50 MPa, beta_stress=5e-5 m³/mol: argument = 5e-5*5e7/2478 ~ 1.0
-    # Molar activation volume ~50 cm³/mol is in published range for stress-corrosion systems
-    # EXPLICIT: this value is literature-informed but NOT calibrated against experiment here
+    # EXPLICIT: this value is an unsourced assumption, NOT calibrated against experiment
     beta_stress: float  = 5e-5        # m³/mol (molar activation volume) -- REQUIRES CALIBRATION
     # Anodic/cathodic Tafel slopes
     ba: float = 0.12                   # V/decade  anodic
@@ -65,7 +70,7 @@ class EnvironmentParams:
     """CO2-saturated 3.5 wt% NaCl brine at 25°C (representative)."""
     temperature: float  = 298.15       # K
     pH: float           = 4.5          # bulk pH
-    overpotential: float = -0.15       # V  (cathodic polarization driving force)
+    overpotential: float = 0.15        # V  (anodic overpotential of Fe dissolution, E_corr - E_eq)
     corrosion_potential_ref: float = -0.65  # V vs SHE (estimated, not verified against specific test)
 
 
@@ -178,10 +183,11 @@ def butler_volmer_stress_modified(
     Note: beta_stress is material+environment specific. Value used here is
     phenomenological. Experimental calibration required for production use.
 
-    Butler-Volmer anodic branch:
-        i_a = i0_eff * exp(alpha_a * F * eta / (R*T))
+    Tafel form of the Butler-Volmer anodic branch:
+        i_a = i0_eff * 10**(eta / ba)
 
-    where eta = overpotential (V), alpha_a = ba * log(10) / (R*T/F)
+    where eta = overpotential (V), ba = anodic Tafel slope (V/decade).
+    ba = 0.12 V/decade corresponds to a transfer coefficient of about 0.5 at 25 C.
 
     Units: returns A/cm²
     """
@@ -193,11 +199,8 @@ def butler_volmer_stress_modified(
     stress_arg = np.clip(mp.beta_stress * sigma / (R_GAS * T), -50, 50)
     i0_eff = mp.i0_ref * np.exp(stress_arg)
 
-    # Anodic Tafel slope alpha
-    alpha_a = mp.ba * np.log(10) / (R_GAS * T / FARADAY)
-
     # Anodic current (Butler-Volmer, anodic branch only, cathodic neglected for anodic scan)
-    i_anodic = i0_eff * np.exp(alpha_a * np.abs(eta))
+    i_anodic = i0_eff * 10.0 ** (eta / mp.ba)
 
     return i_anodic  # A/cm²
 
@@ -327,7 +330,7 @@ def run_simulation(
     vibration_amplification = CR_mean / CR_static if CR_static > 0 else np.nan
 
     # Extrapolate 1-year corrosion depth
-    CR_1yr_mm = CR_mean * (365.25 * 24)  # mm/yr assuming steady state
+    CR_1yr_mm = CR_mean * 1.0  # mm/yr over one year, assuming steady state
 
     print(f"[SIM] Natural frequency: {fn_hz:.2f} Hz")
     print(f"[SIM] Excitation frequency: {vp.excitation_freq_hz:.2f} Hz")

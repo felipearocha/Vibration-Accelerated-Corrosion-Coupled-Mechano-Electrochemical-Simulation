@@ -1,11 +1,10 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 ML Baseline: Gradient Boosted Corrosion Rate Predictor
 
 Justification for ML use:
     The corrosion rate surface over {freq, force, damping, pH, overpotential, stiffness}
-    is highly nonlinear near resonance. A GBR can serve as a fast surrogate
-    (microseconds vs milliseconds for ODE) for real-time monitoring.
+    is highly nonlinear near resonance. A GBR can serve as a surrogate of it.
 
     ML is NOT replacing physics. It is a surrogate for the physics simulation.
     Physics constraints are enforced via input validation and monotonicity checks.
@@ -53,8 +52,10 @@ def train_gbr(df: pd.DataFrame, model_dir: str = "assets/models") -> dict:
     """
     Train GBR surrogate on physics simulation data.
 
+    Trains on rows inside the model domain only.
     Returns metrics and saves model artifacts.
     """
+    df = df[df["in_domain"] == 1]
     X = df[FEATURE_COLS].values
     y = df[TARGET_COL].values
 
@@ -150,8 +151,7 @@ def predict(
 ) -> float:
     """
     Predict corrosion rate from vibration and environment parameters.
-    Returns CR in mm/yr.
-    Raises ValueError if input is outside training domain.
+    Returns CR in mm/yr. Inputs are not checked against the training domain.
     """
     gbr = joblib.load(os.path.join(model_dir, "gbr_model.pkl"))
     scaler = joblib.load(os.path.join(model_dir, "scaler.pkl"))

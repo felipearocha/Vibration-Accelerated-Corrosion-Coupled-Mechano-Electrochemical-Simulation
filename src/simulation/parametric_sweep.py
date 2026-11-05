@@ -1,20 +1,20 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 Parametric Sweep Engine
 
-Generates >= 10,000 physics-consistent data points across the
+Generates 50,000 physics-consistent data points across the
 vibration-corrosion design space for model training and validation.
 
 Parameters swept:
     - Excitation frequency (Hz): 5 to 50
     - Excitation force amplitude (N): 100 to 2000
     - Damping ratio: 0.01 to 0.10
-    - Overpotential (V): -0.05 to -0.30
+    - Anodic overpotential (V): 0.05 to 0.30
     - pH: 3.5 to 7.0
 
 Outputs:
     - CSV with all input parameters and computed outputs
-    - At least 10,000 rows
+    - 50,000 rows
 """
 
 import numpy as np
@@ -27,15 +27,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from simulation.vibrocorrosion_engine import (
     MaterialParams, EnvironmentParams, VibrationParams,
     sdof_damped_response, compute_dynamic_stress,
-    butler_volmer_stress_modified, faraday_mass_loss_rate
+    butler_volmer_stress_modified, faraday_mass_loss_rate, SIGMA_RMS_DOMAIN_MAX
 )
 
 # Sweep grid definition
-# 5 x 5 x 4 x 5 x 4 x 5 = 10,000 combinations
 FREQ_GRID     = np.linspace(5.0,  50.0, 10)   # Hz
 FORCE_GRID    = np.linspace(100.0, 2000.0, 10) # N
 DAMP_GRID     = np.array([0.01, 0.03, 0.05, 0.08, 0.10])
-OVERPOT_GRID  = np.linspace(-0.05, -0.30, 5)  # V
+OVERPOT_GRID  = np.linspace(0.05, 0.30, 5)  # V
 PH_GRID       = np.linspace(3.5, 7.0, 4)
 STIFFNESS_GRID = np.array([1e6, 3e6, 5e6, 8e6, 12e6])  # N/m
 
@@ -61,11 +60,18 @@ def sdof_steady_state_amplitude(mass, stiffness, damping_ratio, F0, omega_exc):
 
 def ph_to_overpotential_correction(pH: float, pH_ref: float = 4.5) -> float:
     """
-    Simplified pH correction to corrosion driving force.
-    Nernst shift: approximately -0.0592 * (pH - pH_ref) V at 25°C
-    This is an approximation. Does not capture all pH-dependent effects.
+    Simplified pH correction to the anodic overpotential.
+    Nernst shift: approximately -0.0592 * (pH - pH_ref) V at 25°C, so a lower pH
+    raises the driving force. Takes the full Nernst slope as the shift of the
+    corrosion potential, which is an upper bound. Does not capture all pH effects.
     """
     return -0.0592 * (pH - pH_ref)
+
+
+def fretting_rate_mmyr(thickness_nm_per_1000_cycles: float, freq_hz: float) -> float:
+    """Archard thickness loss per 1000 cycles [nm] to a rate [mm/yr] at freq_hz."""
+    mm_per_cycle = thickness_nm_per_1000_cycles * 1e-6 / 1000.0
+    return mm_per_cycle * freq_hz * 3.156e7
 
 
 def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd.DataFrame:
@@ -78,7 +84,7 @@ def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd
     3. Compute stress-modified corrosion rate
     4. Compute fretting wear rate
 
-    Returns DataFrame with >= 10,000 rows.
+    Returns DataFrame with 50,000 rows.
     """
     mp = MaterialParams()
     mass = 50.0
@@ -158,7 +164,8 @@ def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd
             "VAF": VAF,                              # Vibration Amplification Factor
             "fretting_nm_per_1000cycles": thickness_per_1000_cycles_nm,
             "at_resonance": at_resonance,
-            "CR_total_mmyr": CR_rms + (thickness_per_1000_cycles_nm * 1e-6 * fn_hz * 3.156e7),
+            "in_domain": 1 if sigma_rms_clamped <= SIGMA_RMS_DOMAIN_MAX else 0,
+            "CR_total_mmyr": CR_rms + fretting_rate_mmyr(thickness_per_1000_cycles_nm, freq_hz),
         })
 
         count += 1
@@ -167,9 +174,11 @@ def run_parametric_sweep(output_path: str = "assets/parametric_sweep.csv") -> pd
 
     df = pd.DataFrame(records)
     print(f"[SWEEP] Complete. Total rows: {len(df):,}")
-    print(f"[SWEEP] VAF range: {df['VAF'].min():.3f} to {df['VAF'].max():.3f}")
-    print(f"[SWEEP] CR range: {df['CR_rms_mmyr'].min():.4f} to {df['CR_rms_mmyr'].max():.4f} mm/yr")
+    dom = df[df["in_domain"] == 1]
+    print(f"[SWEEP] In-domain VAF range: {dom['VAF'].min():.3f} to {dom['VAF'].max():.3f}")
+    print(f"[SWEEP] In-domain CR range: {dom['CR_rms_mmyr'].min():.4f} to {dom['CR_rms_mmyr'].max():.4f} mm/yr")
     print(f"[SWEEP] Rows with sigma clamped at yield: {df['sigma_clamped'].sum():,}")
+    print(f"[SWEEP] Rows inside the model domain: {df['in_domain'].sum():,}")
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df.to_csv(output_path, index=False)

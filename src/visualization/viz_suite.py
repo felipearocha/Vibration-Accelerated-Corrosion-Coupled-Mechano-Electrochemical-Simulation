@@ -1,5 +1,5 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 Visualization Suite
 
 Produces:
@@ -10,7 +10,7 @@ Produces:
 5. Secondary 4: Vibration Amplification Factor heatmap
 6. GIF: Animated CR evolution as frequency sweeps through resonance
 
-All plots use matplotlib/numpy only (no hallucinated libraries).
+All plots use matplotlib/numpy only.
 """
 
 import numpy as np
@@ -28,9 +28,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from simulation.vibrocorrosion_engine import (
     MaterialParams, EnvironmentParams, VibrationParams,
     sdof_damped_response, compute_dynamic_stress,
-    butler_volmer_stress_modified, faraday_mass_loss_rate
+    butler_volmer_stress_modified, faraday_mass_loss_rate, SIGMA_RMS_DOMAIN_MAX
 )
 from simulation.parametric_sweep import sdof_steady_state_amplitude
+from validation.validation_suite import run_sensitivity_analysis
 
 ASSET_DIR = "assets"
 os.makedirs(ASSET_DIR, exist_ok=True)
@@ -64,7 +65,7 @@ def set_brand_style():
 def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
     """
     3D surface: CR_rms_mmyr vs (freq_hz, force_N)
-    Slice at: damping=0.02, pH=5.25, overpot=-0.15, stiffness=5e6
+    Slice at: damping=0.03, pH=4.67, overpot=0.175, stiffness=5e6
     """
     print("[VIZ] Generating hero 3D surface...")
     set_brand_style()
@@ -73,8 +74,8 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
         df = pd.read_csv(df_path)
         mask = (
             (df["damping_ratio"] == 0.03) &
-            (df["pH"] == 4.666666666666667) &
-            (df["overpotential_V"] == -0.175) &
+            np.isclose(df["pH"], 4.666666666666667) &
+            np.isclose(df["overpotential_V"], 0.175) &
             (df["stiffness_Nm"] == 5e6)
         )
         subset = df[mask]
@@ -86,8 +87,10 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
             for i, freq in enumerate(freq_vals):
                 for j, force in enumerate(force_vals):
                     row = subset[(subset["freq_hz"]==freq) & (subset["force_N"]==force)]
-                    if len(row) > 0:
+                    if len(row) > 0 and row["in_domain"].values[0] == 1:
                         Z[i, j] = row["CR_rms_mmyr"].values[0]
+                    else:
+                        Z[i, j] = np.nan  # outside the model domain
         else:
             _hero_fallback()
             return
@@ -119,12 +122,12 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
     ax.set_zlabel("CR (mm/yr)", labelpad=12, fontsize=10)
     ax.set_title(
         "VIBRATION-ACCELERATED CORROSION RATE SURFACE\n"
-        f"X65 Steel | CO₂ Brine | pH 5.25 | η = -0.15V | k=5MN/m",
+        f"X65 Steel | CO₂ Brine | pH 4.67 | η = 0.175 V | k=5MN/m | gaps = outside model domain",
         fontsize=12, fontweight="bold", pad=20
     )
 
     # Watermark
-    fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Week 4 | Physics-First",
+    fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Bonus | Physics-First",
              fontsize=8, color=ACCENT2, alpha=0.7)
 
     ax.view_init(elev=25, azim=225)
@@ -140,7 +143,7 @@ def _hero_fallback():
     """Generate hero without dataset (analytical calculation)."""
     set_brand_style()
     mp = MaterialParams()
-    ep = EnvironmentParams(overpotential=-0.15, pH=5.25)
+    ep = EnvironmentParams(overpotential=0.15, pH=4.5)
     mass, k = 50.0, 5e6
     contact_area = 1e-4
     damp = 0.03
@@ -155,9 +158,10 @@ def _hero_fallback():
             omega = 2 * np.pi * freq
             x_ss = sdof_steady_state_amplitude(mass, k, damp, force, omega)
             sigma = (k * x_ss / np.sqrt(2)) / contact_area
-            sigma = min(sigma, mp.yield_strength)
             i_corr = butler_volmer_stress_modified(np.array([sigma]), mp, ep)[0]
             Z[i, j] = faraday_mass_loss_rate(np.array([i_corr]), mp)[0]
+            if sigma > SIGMA_RMS_DOMAIN_MAX:
+                Z[i, j] = np.nan  # outside the model domain
 
     fig = plt.figure(figsize=(14, 9), facecolor=BRAND_COLOR)
     ax = fig.add_subplot(111, projection='3d')
@@ -170,8 +174,8 @@ def _hero_fallback():
     ax.set_xlabel("Excitation Freq (Hz)", labelpad=12)
     ax.set_ylabel("Force (N)", labelpad=12)
     ax.set_zlabel("CR (mm/yr)", labelpad=12)
-    ax.set_title("VIBRATION-ACCELERATED CORROSION RATE SURFACE\nX65 | CO₂ Brine | η=-0.15V", fontsize=12, fontweight="bold")
-    fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Week 4", fontsize=8, color=ACCENT2, alpha=0.7)
+    ax.set_title("VIBRATION-ACCELERATED CORROSION RATE SURFACE\nX65 | CO₂ Brine | η=0.15 V", fontsize=12, fontweight="bold")
+    fig.text(0.02, 0.02, "INTEGRITY CODE SERIES | Bonus", fontsize=8, color=ACCENT2, alpha=0.7)
     ax.view_init(elev=25, azim=225)
     plt.tight_layout()
     out = f"{ASSET_DIR}/hero_3d_cr_surface.png"
@@ -188,7 +192,7 @@ def plot_time_domain():
     set_brand_style()
 
     mp = MaterialParams()
-    ep = EnvironmentParams(overpotential=-0.15, pH=5.25)
+    ep = EnvironmentParams(overpotential=0.15, pH=4.5)
     vp = VibrationParams(excitation_freq_hz=15.0)
 
     t, x, v = sdof_damped_response(vp, t_end=2.0, dt=5e-5)
@@ -217,7 +221,7 @@ def plot_time_domain():
     axes[2].set_xlabel("Time (s)", fontsize=10)
     axes[2].grid(True, alpha=0.3)
 
-    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Week 4 | Mechano-Electrochemical Coupling",
+    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | Mechano-Electrochemical Coupling",
              fontsize=8, color=ACCENT2, alpha=0.7)
 
     out = f"{ASSET_DIR}/secondary_time_domain.png"
@@ -279,7 +283,7 @@ def plot_residuals(model_dir: str = "assets/models"):
     ax2.legend(fontsize=9)
     ax2.grid(True, alpha=0.3)
 
-    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Week 4 | ML Surrogate Validation",
+    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | ML Surrogate Validation",
              fontsize=8, color=ACCENT2, alpha=0.7)
 
     plt.tight_layout()
@@ -298,7 +302,7 @@ def plot_iso_risk_map():
     set_brand_style()
 
     mp = MaterialParams()
-    ep = EnvironmentParams(overpotential=-0.15, pH=5.25)
+    ep = EnvironmentParams(overpotential=0.15, pH=4.5)
     mass, k = 50.0, 5e6
     contact_area = 1e-4
     force = 800.0
@@ -314,9 +318,10 @@ def plot_iso_risk_map():
             omega = 2 * np.pi * freq
             x_ss = sdof_steady_state_amplitude(mass, k, damp, force, omega)
             sigma = (k * x_ss / np.sqrt(2)) / contact_area
-            sigma = min(sigma, mp.yield_strength)
             i_corr = butler_volmer_stress_modified(np.array([sigma]), mp, ep)[0]
             Z[i, j] = faraday_mass_loss_rate(np.array([i_corr]), mp)[0]
+            if sigma > SIGMA_RMS_DOMAIN_MAX:
+                Z[i, j] = np.nan  # outside the model domain
 
     fig, ax = plt.subplots(figsize=(12, 8), facecolor=BRAND_COLOR)
     ax.set_facecolor(BRAND_COLOR)
@@ -344,13 +349,13 @@ def plot_iso_risk_map():
     ax.set_ylabel("Structural Damping Ratio ζ", fontsize=11)
     ax.set_title(
         "ISO-RISK MAP: Corrosion Rate (mm/yr)\n"
-        f"Force=800N | X65/CO₂ Brine | pH=5.25 | fₙ={fn_hz:.1f}Hz",
+        f"Force=800N | X65/CO₂ Brine | pH=4.5 | fₙ={fn_hz:.1f}Hz | blank = outside model domain",
         fontsize=12, fontweight="bold"
     )
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.2)
 
-    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Week 4 | Iso-Risk Corrosion Map",
+    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | Iso-Risk Corrosion Map",
              fontsize=8, color=ACCENT2, alpha=0.7)
 
     plt.tight_layout()
@@ -369,7 +374,7 @@ def generate_gif():
     set_brand_style()
 
     mp = MaterialParams()
-    ep = EnvironmentParams(overpotential=-0.15, pH=5.25)
+    ep = EnvironmentParams(overpotential=0.15, pH=4.5)
     mass, k = 50.0, 5e6
     contact_area = 1e-4
     force = 800.0
@@ -428,7 +433,7 @@ def generate_gif():
                           fontsize=10, fontweight="bold")
         axes[1].grid(True, alpha=0.3)
 
-        fig.suptitle("INTEGRITY CODE SERIES | Week 4 | Vibration→Corrosion Sweep",
+        fig.suptitle("INTEGRITY CODE SERIES | Bonus | Vibration→Corrosion Sweep",
                      color=ACCENT2, fontsize=11, y=0.98)
 
         return axes
@@ -445,22 +450,14 @@ def generate_gif():
 # ============================================================
 # SENSITIVITY BAR CHART
 # ============================================================
-def plot_sensitivity(sensitivity_dict: dict = None):
+def plot_sensitivity(df_path: str = "assets/parametric_sweep.csv"):
     print("[VIZ] Generating sensitivity chart...")
     set_brand_style()
 
-    if sensitivity_dict is None or len(sensitivity_dict) == 0:
-        # Compute analytically
-        sensitivity_dict = {
-            "freq_hz": 0.72,
-            "force_N": 0.65,
-            "stiffness_Nm": -0.41,
-            "damping_ratio": -0.55,
-            "overpotential_V": 0.88,
-            "pH": -0.44,
-            "freq_ratio_r": 0.78
-        }
-        print("[VIZ] Using estimated sensitivity values (no dataset available)")
+    sensitivity_dict = run_sensitivity_analysis(df_path)
+    if not sensitivity_dict:
+        print("[VIZ] No dataset, sensitivity chart skipped.")
+        return None
 
     features = list(sensitivity_dict.keys())
     corrs = [sensitivity_dict[f] for f in features]
@@ -483,7 +480,7 @@ def plot_sensitivity(sensitivity_dict: dict = None):
         ax.text(val + 0.01 * np.sign(val), bar.get_y() + bar.get_height()/2,
                 f"{val:+.3f}", va="center", fontsize=9, color="white")
 
-    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Week 4 | Sensitivity", fontsize=8, color=ACCENT2, alpha=0.7)
+    fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | Sensitivity", fontsize=8, color=ACCENT2, alpha=0.7)
     plt.tight_layout()
     out = f"{ASSET_DIR}/secondary_sensitivity.png"
     plt.savefig(out, dpi=150, bbox_inches="tight", facecolor=BRAND_COLOR)
@@ -497,7 +494,7 @@ def plot_sensitivity(sensitivity_dict: dict = None):
 # ============================================================
 def run_all_visuals():
     print("\n" + "="*60)
-    print("INTEGRITY CODE SERIES | Week 4 | Visual Suite")
+    print("INTEGRITY CODE SERIES | Bonus | Visual Suite")
     print("="*60)
     plot_hero_3d_surface()
     plot_time_domain()

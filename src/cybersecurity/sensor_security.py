@@ -1,5 +1,5 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 Cybersecurity Architecture: Vibration-Corrosion Sensor Network
 
 Threat Model for a vibration-corrosion monitoring system:
@@ -372,7 +372,7 @@ THREAT_MODEL = {
 
 def print_threat_model():
     print("\n" + "="*70)
-    print("CYBERSECURITY THREAT MODEL - INTEGRITY CODE SERIES Week 4")
+    print("CYBERSECURITY THREAT MODEL - INTEGRITY CODE SERIES Bonus")
     print("="*70)
     for t in THREAT_MODEL["threats"]:
         print(f"\n[{t['id']}] {t['category']}")

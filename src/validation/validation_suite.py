@@ -1,5 +1,5 @@
 """
-INTEGRITY CODE SERIES - Week 4
+INTEGRITY CODE SERIES - Bonus
 Validation and Verification Module
 
 Performs:
@@ -87,7 +87,7 @@ def check_sdof_energy_balance(sim_duration=5.0, dt=1e-4) -> bool:
     P_dissipated = c * np.mean(v_ss**2)
 
     rel_error = abs(P_input - P_dissipated) / (abs(P_dissipated) + 1e-30)
-    check = rel_error < 0.15  # 15% tolerance (numerical integration error acceptable)
+    check = bool(rel_error < 0.15)  # 15% tolerance (numerical integration error acceptable)
 
     print(f"[VAL] SDOF energy balance: P_in={P_input:.3f} W, P_diss={P_dissipated:.3f} W, "
           f"err={rel_error*100:.1f}%  -> {'PASS' if check else 'FAIL'}")
@@ -112,15 +112,14 @@ def check_bv_limits() -> bool:
     print(f"[VAL] BV limit at eta=0: i={i_at_zero_eta[0]:.2e}, i0={expected:.2e}, "
           f"err={rel_err:.2e}  -> {'PASS' if check1 else 'FAIL'}")
 
-    # Monotonicity: higher overpotential -> higher anodic current
-    etas = np.linspace(-0.3, -0.01, 10)
+    # Monotonicity: higher anodic overpotential -> higher anodic current
+    etas = np.linspace(0.01, 0.3, 10)
     i_vals = []
     for eta in etas:
         ep2 = EnvironmentParams(overpotential=eta)
         i_vals.append(butler_volmer_stress_modified(sigma_zero, mp, ep2)[0])
-    # More negative eta -> higher driving force -> higher current
-    check2 = all(i_vals[i] >= i_vals[i+1] for i in range(len(i_vals)-1))
-    print(f"[VAL] BV monotonicity (more cathodic -> more anodic current): {'PASS' if check2 else 'FAIL'}")
+    check2 = all(i_vals[i] <= i_vals[i+1] for i in range(len(i_vals)-1))
+    print(f"[VAL] BV monotonicity (more anodic -> more anodic current): {'PASS' if check2 else 'FAIL'}")
 
     return check1 and check2
 
@@ -135,6 +134,7 @@ def run_sensitivity_analysis(df_path: str = "assets/parametric_sweep.csv") -> di
         return {}
 
     df = pd.read_csv(df_path)
+    df = df[df["in_domain"] == 1]
     features = ["freq_hz", "force_N", "damping_ratio", "overpotential_V", "pH", "stiffness_Nm", "freq_ratio_r"]
     corr = {}
     for f in features:
@@ -151,31 +151,30 @@ def run_sensitivity_analysis(df_path: str = "assets/parametric_sweep.csv") -> di
 def check_resonance_amplification(df_path: str = "assets/parametric_sweep.csv") -> bool:
     """
     Verify that VAF peaks at resonance (freq_ratio_r = 1).
-    Filter a single parameter slice (low damping, constant other params).
+    Takes one slice of the grid, at the grid values nearest the targets below.
+    A missing or empty slice is a failure, not a pass.
     """
     if not os.path.exists(df_path):
         print("[VAL] No data for resonance check.")
-        return True
+        return False
 
     df = pd.read_csv(df_path)
-    # Filter: specific force, damping, overpotential, pH, stiffness
-    mask = (
-        (df["force_N"].between(990, 1010)) &
-        (df["damping_ratio"].between(0.029, 0.031)) &
-        (df["overpotential_V"].between(-0.175, -0.125)) &
-        (df["pH"].between(5.2, 5.3)) &
-        (df["stiffness_Nm"].between(4.9e6, 5.1e6))
-    )
-    subset = df[mask].sort_values("freq_ratio_r")
+    targets = {"force_N": 1000.0, "damping_ratio": 0.03, "overpotential_V": 0.15,
+               "pH": 4.5, "stiffness_Nm": 5e6}
+    subset = df
+    for col, target in targets.items():
+        values = df[col].unique()
+        subset = subset[subset[col] == values[np.argmin(np.abs(values - target))]]
+    subset = subset.sort_values("freq_ratio_r")
 
     if len(subset) < 3:
-        print(f"[VAL] Resonance check: insufficient filtered data ({len(subset)} rows)")
-        return True
+        print(f"[VAL] Resonance check FAIL: insufficient filtered data ({len(subset)} rows)")
+        return False
 
     # Peak VAF should be near r=1
     peak_idx = subset["VAF"].idxmax()
     peak_r = subset.loc[peak_idx, "freq_ratio_r"]
-    check = 0.7 < peak_r < 1.3
+    check = bool(0.7 < peak_r < 1.3)
     print(f"[VAL] Resonance VAF peak at freq_ratio_r={peak_r:.3f}  -> {'PASS' if check else 'FAIL'}")
     return check
 
@@ -183,7 +182,7 @@ def check_resonance_amplification(df_path: str = "assets/parametric_sweep.csv") 
 def run_all_validations(df_path: str = "assets/parametric_sweep.csv") -> dict:
     """Run all validation checks and return summary."""
     print("\n" + "="*60)
-    print("INTEGRITY CODE SERIES - Week 4: VALIDATION SUITE")
+    print("INTEGRITY CODE SERIES - Bonus: VALIDATION SUITE")
     print("="*60)
 
     results = {}
