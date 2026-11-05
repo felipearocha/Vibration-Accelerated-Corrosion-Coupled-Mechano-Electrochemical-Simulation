@@ -41,7 +41,6 @@ class MaterialParams:
     youngs_modulus: float = 200e9       # Pa
     yield_strength: float = 448e6      # Pa  (X65 minimum)
     hardness_vickers: float = 200.0    # HV
-    alpha_tafel: float  = 0.5          # charge transfer symmetry factor
     i0_ref: float       = 1e-6         # A/cm²  exchange current density at zero stress
     # Stress sensitivity of exchange current density
     # Physical basis: stress increases surface Gibbs free energy, lowering activation barrier
@@ -178,10 +177,11 @@ def butler_volmer_stress_modified(
     Note: beta_stress is material+environment specific. Value used here is
     phenomenological. Experimental calibration required for production use.
 
-    Butler-Volmer anodic branch:
-        i_a = i0_eff * exp(alpha_a * F * eta / (R*T))
+    Tafel form of the Butler-Volmer anodic branch:
+        i_a = i0_eff * 10**(eta / ba)
 
-    where eta = overpotential (V), alpha_a = ba * log(10) / (R*T/F)
+    where eta = overpotential (V), ba = anodic Tafel slope (V/decade).
+    ba = 0.12 V/decade corresponds to a transfer coefficient of about 0.5 at 25 C.
 
     Units: returns A/cm²
     """
@@ -193,11 +193,8 @@ def butler_volmer_stress_modified(
     stress_arg = np.clip(mp.beta_stress * sigma / (R_GAS * T), -50, 50)
     i0_eff = mp.i0_ref * np.exp(stress_arg)
 
-    # Anodic Tafel slope alpha
-    alpha_a = mp.ba * np.log(10) / (R_GAS * T / FARADAY)
-
     # Anodic current (Butler-Volmer, anodic branch only, cathodic neglected for anodic scan)
-    i_anodic = i0_eff * np.exp(alpha_a * np.abs(eta))
+    i_anodic = i0_eff * 10.0 ** (np.abs(eta) / mp.ba)
 
     return i_anodic  # A/cm²
 

@@ -79,6 +79,13 @@ def test_bv_at_zero_stress_and_overpotential_equals_i0():
     assert abs(i_zero - mp.i0_ref) < 1e-12 * mp.i0_ref
 
 
+def test_bv_tafel_slope_handcalc():
+    # One Tafel slope of overpotential is one decade of current, by definition.
+    ep_ba = EnvironmentParams(overpotential=mp.ba)
+    i = butler_volmer_stress_modified(np.array([0.0]), mp, ep_ba)[0]
+    assert i == pytest.approx(10.0 * mp.i0_ref)
+
+
 def test_bv_current_increases_with_stress():
     i_low = butler_volmer_stress_modified(np.array([0.0]), mp, ep)[0]
     i_high = butler_volmer_stress_modified(np.array([100e6]), mp, ep)[0]  # 100 MPa
