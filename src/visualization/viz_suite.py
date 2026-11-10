@@ -102,15 +102,14 @@ def plot_hero_3d_surface(df_path: str = "assets/parametric_sweep.csv"):
     ax = fig.add_subplot(111, projection='3d')
     ax.set_facecolor(BRAND_COLOR)
 
+    # Explicit limits: the default norm uses face-averaged z, so the colorbar
+    # would stop below the vertex peak.
     surf = ax.plot_surface(Fr_grid, F_grid, Z,
                            cmap="plasma",
+                           vmin=np.nanmin(Z), vmax=np.nanmax(Z),
                            alpha=0.9,
                            linewidth=0.3,
                            edgecolors=None)
-
-    # Mark resonance plane
-    fn_hz = np.sqrt(5e6 / 50.0) / (2 * np.pi)
-    ax.axvline(x=fn_hz, color=ACCENT1, linestyle="--", alpha=0.5, linewidth=2, label=None)
 
     cb = fig.colorbar(surf, ax=ax, shrink=0.5, pad=0.1)
     cb.set_label("CR (mm/yr)", color="white", fontsize=11)
@@ -166,7 +165,8 @@ def _hero_fallback():
     fig = plt.figure(figsize=(14, 9), facecolor=BRAND_COLOR)
     ax = fig.add_subplot(111, projection='3d')
     ax.set_facecolor(BRAND_COLOR)
-    surf = ax.plot_surface(FR, FF, Z, cmap="plasma", alpha=0.9)
+    surf = ax.plot_surface(FR, FF, Z, cmap="plasma", alpha=0.9,
+                           vmin=np.nanmin(Z), vmax=np.nanmax(Z))
     cb = fig.colorbar(surf, ax=ax, shrink=0.5, pad=0.1)
     cb.set_label("CR (mm/yr)", color="white")
     cb.ax.yaxis.set_tick_params(color="white")
@@ -210,10 +210,10 @@ def plot_time_domain():
     axes[0].axhline(0, color="white", linewidth=0.3, alpha=0.3)
 
     axes[1].plot(t, sigma / 1e6, color=ACCENT3, linewidth=0.8, alpha=0.9)
-    axes[1].axhline(mp.yield_strength / 1e6, color=ACCENT1, linewidth=1, linestyle="--",
-                    label=f"Yield ({mp.yield_strength/1e6:.0f} MPa)")
+    # Yield is ~100x the signal; drawing it as a line flattens the trace.
+    axes[1].text(0.99, 0.92, f"peak {sigma.max()/1e6:.1f} MPa  |  yield {mp.yield_strength/1e6:.0f} MPa (off scale)",
+                 transform=axes[1].transAxes, ha="right", va="top", fontsize=9, color=ACCENT1)
     axes[1].set_ylabel("Surface Stress (MPa)", fontsize=10)
-    axes[1].legend(fontsize=9, loc="upper right")
     axes[1].grid(True, alpha=0.3)
 
     axes[2].plot(t, CR, color=ACCENT1, linewidth=0.8, alpha=0.9)
@@ -264,22 +264,26 @@ def plot_residuals(model_dir: str = "assets/models"):
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
     cb = fig.colorbar(scatter, ax=ax)
-    cb.set_label("|Residual|", color="white")
+    cb.set_label("|Residual| (mm/yr)", color="white")
     cb.ax.yaxis.set_tick_params(color="white")
     plt.setp(plt.getp(cb.ax.axes, 'yticklabels'), color="white")
 
-    # Residual distribution
+    # Residual distribution: bin the central 99% so the bulk is visible;
+    # a few large outliers would otherwise squeeze it into one bin.
     ax2 = axes[1]
     ax2.set_facecolor(BRAND_COLOR)
-    ax2.hist(residuals, bins=60, color=ACCENT1, alpha=0.8, edgecolor="none")
+    lo, hi = np.percentile(residuals, [0.5, 99.5])
+    n_out = int(np.sum((residuals < lo) | (residuals > hi)))
+    ax2.hist(residuals, bins=60, range=(lo, hi), color=ACCENT1, alpha=0.8, edgecolor="none")
     ax2.axvline(0, color=ACCENT2, linewidth=2, linestyle="--")
     ax2.axvline(np.mean(residuals), color=ACCENT3, linewidth=2, linestyle="--",
-                label=f"Mean={np.mean(residuals):.5f}")
+                label=f"Mean={np.mean(residuals):.5f} mm/yr")
     ax2.axvline(np.percentile(residuals, 95), color="white", linewidth=1, linestyle=":",
-                label=f"95th pct={np.percentile(residuals,95):.5f}")
+                label=f"95th pct={np.percentile(residuals,95):.5f} mm/yr")
     ax2.set_xlabel("Residual (mm/yr)", fontsize=10)
     ax2.set_ylabel("Count", fontsize=10)
-    ax2.set_title("Residual Distribution", fontsize=11, fontweight="bold")
+    ax2.set_title(f"Residual Distribution (central 99%; {n_out} of {len(residuals)} outside)",
+                  fontsize=11, fontweight="bold")
     ax2.legend(fontsize=9)
     ax2.grid(True, alpha=0.3)
 
@@ -308,7 +312,7 @@ def plot_iso_risk_map():
     force = 800.0
 
     fn_hz = np.sqrt(k / mass) / (2 * np.pi)
-    freqs = np.linspace(3, 50, 60)
+    freqs = np.linspace(3, 70, 60)   # span both sides of f_n = 50.3 Hz
     damps = np.linspace(0.005, 0.15, 60)
 
     FF, DD = np.meshgrid(freqs, damps)
@@ -337,7 +341,7 @@ def plot_iso_risk_map():
 
     # Risk zones
     ax.fill_betweenx([0.005, 0.15], fn_hz - 2, fn_hz + 2, alpha=0.15, color=ACCENT1)
-    ax.text(fn_hz, 0.135, "RESONANCE\nDANGER ZONE", ha="center", fontsize=9,
+    ax.text(fn_hz + 2.5, 0.135, "RESONANCE\nDANGER ZONE", ha="left", fontsize=9,
             color=ACCENT1, fontweight="bold")
 
     cb = fig.colorbar(contourf, ax=ax)
@@ -381,7 +385,7 @@ def generate_gif():
     damp = 0.03
     fn_hz = np.sqrt(k / mass) / (2 * np.pi)
 
-    freqs_sweep = np.linspace(3, 50, 48)  # 48 frames
+    freqs_sweep = np.linspace(3, 70, 48)  # 48 frames, through f_n = 50.3 Hz
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 6), facecolor=BRAND_COLOR)
     fig.subplots_adjust(wspace=0.35)
@@ -424,7 +428,6 @@ def generate_gif():
         t_wave = np.linspace(0, 0.5, 500)
         x_wave = x_ss * np.sin(omega * t_wave)
         axes[1].plot(t_wave, x_wave * 1e6, color=ACCENT2, linewidth=1.5)
-        axes[1].set_ylim(-max(all_CR) * 500, max(all_CR) * 500)
         amplitude_um = x_ss * 1e6
         axes[1].set_ylim(-amplitude_um * 2 - 1, amplitude_um * 2 + 1)
         axes[1].set_xlabel("Time (s)", fontsize=10)
@@ -471,14 +474,16 @@ def plot_sensitivity(df_path: str = "assets/parametric_sweep.csv"):
     ax.set_facecolor(BRAND_COLOR)
     bars = ax.barh(features, corrs, color=colors, edgecolor="none", alpha=0.85)
     ax.axvline(0, color="white", linewidth=1, alpha=0.5)
-    ax.set_xlabel("Pearson Correlation with CR_rms (mm/yr)", fontsize=11)
+    ax.margins(x=0.15)   # room for the value labels at both ends
+    ax.set_xlabel("Pearson correlation with CR_rms (-)", fontsize=11)
     ax.set_title("SENSITIVITY ANALYSIS: Input Parameters vs Corrosion Rate",
                  fontsize=12, fontweight="bold")
     ax.grid(True, alpha=0.3, axis="x")
 
     for bar, val in zip(bars, corrs):
         ax.text(val + 0.01 * np.sign(val), bar.get_y() + bar.get_height()/2,
-                f"{val:+.3f}", va="center", fontsize=9, color="white")
+                f"{val:+.3f}", va="center", ha="left" if val >= 0 else "right",
+                fontsize=9, color="white")
 
     fig.text(0.02, 0.01, "INTEGRITY CODE SERIES | Bonus | Sensitivity", fontsize=8, color=ACCENT2, alpha=0.7)
     plt.tight_layout()
