@@ -21,7 +21,7 @@ An ML surrogate (GBR) is trained on the physics-generated sweep. All governing e
 
 ## KEY RESULTS
 
-![Corrosion rate surface](assets/hero_3d_cr_surface.png)
+![3D surface of RMS corrosion rate versus excitation frequency and force amplitude for X65 in CO2 brine](assets/hero_3d_cr_surface.png)
 
 All numbers are model outputs, not measurements. See [EXPLICIT LIMITATIONS](#explicit-limitations).
 
