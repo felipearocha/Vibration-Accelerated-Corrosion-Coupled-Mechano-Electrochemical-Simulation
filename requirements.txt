@@ -5,3 +5,4 @@ matplotlib>=3.10.9
 scikit-learn>=1.8.0
 joblib>=1.5.3
 pillow>=12.2.0
+pytest>=7.4

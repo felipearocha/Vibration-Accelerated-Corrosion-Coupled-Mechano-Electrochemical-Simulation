@@ -7,11 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- claims: removed the unsourced ROI block, the 1000x speedup and the 20-50% fretting figure
+- domain: results are limited to RMS stress up to 100 MPa ([ASSUMED]); surrogate, sensitivity and maps use in-domain points only
+- figures: `secondary_sensitivity.png` plots correlations computed from the sweep (it plotted hard-coded values)
+- validation: resonance check now reads real grid rows and fails on missing data (it passed on 0 rows); energy balance is counted, so 4 checks instead of 3
+- sweep: `CR_total_mmyr` fretting term uses cycles per second at the excitation frequency (was 1000x too high, at the natural frequency)
+- engine: one-year depth is the mean rate times one year (was multiplied by 8766 hours)
+- engine: overpotential is now a signed anodic overpotential (was |eta| of a cathodic value), so corrosion rate rises as pH falls
+- engine: anodic Tafel term is now 10^(eta/ba); the slope was inverted (10.8 /V, now 19.2 /V)
+- tests: suite is now collected by pytest (31 tests); it crashed pytest before and CI masked it with `|| true`
+- run_pipeline: no longer aborts on the missing LinkedIn file or on a non-UTF-8 console
+- models: gbr_model.pkl and scaler.pkl retrained with current scikit-learn; the old files no longer loaded
+
+### Results
+- Default case CR 0.222 mm/yr (was 0.063); surrogate R2 0.972, MAPE 57.8% (was 0.734, 1189%); validation 4/4 (was 3/3)
+- All figures regenerated; figure label changed from Week 4 to Bonus
+
+### Added
+- run_all.py entry point (alias of run_pipeline.py)
+
 ### Docs
 - docs: insert real Zenodo DOIs (concept 10.5281/zenodo.20172485, version 10.5281/zenodo.20172486)
 
 ### CI
 - ci: drop Python 3.10 from matrix (modern scipy/numpy require >=3.11)
+- ci: test failures now fail the job; bump checkout and setup-python to v7
+- ci: Dependabot keeps pip floors unless needed and groups Actions updates
 ## [0.1.1] - 2026-05-13
 
 ### Changed
@@ -23,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.1]: https://github.com/felipearocha/Vibration-Accelerated-Corrosion-Coupled-Mechano-Electrochemical-Simulation/releases/tag/v0.1.1
 ## [0.1.0] - 2026-03-11
+
+### Results
+- Default case CR 0.222 mm/yr (was 0.063); surrogate R2 0.972, MAPE 57.8% (was 0.734, 1189%); validation 4/4 (was 3/3)
+- All figures regenerated; figure label changed from Week 4 to Bonus
 
 ### Added
 - Add files via upload
